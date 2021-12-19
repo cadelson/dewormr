@@ -1,12 +1,7 @@
 # PURPOSE: Munge and analyze MSR-Surv Database for routine analyses and prepare for appending with other program data
-# AUTHOR: Cody Adelson | Data Manager
-# LICENSE: MIT
-# DATE: Dec 13, 2021
-# NOTES:
-
-df_filepath_surv <- "~/Github/dewormr/Data/2021 MSR-Surv database.25.11.2021.Final _LJ..xlsx"
-df_filepath_hotline <- "~/Github/dewormr/Data/hotline report Oct-2021.xlsx"
-df_filepath_animals <- "~/Github/dewormr/Data/Animal Rumors 2021_OCT.xlsx"
+# AUTHOR: Cody Adelsdf_filepath_surv <- "~/Github/dewormr/Data/Databases (November 2021)/2021 MSR-Surv database.18.12.2021.Final _LJ..xlsx"
+df_filepath_hotline <- "~/Github/dewormr/Data/Databases (November 2021)/Hotline report Nov -2021.xlsx"
+df_filepath_animals <- "~/Github/dewormr/Data/Databases (November 2021)/._Animal Rumors 2021_July 2021.LJ..xlsx"
 
 
 #MSR Data
@@ -90,7 +85,12 @@ df_animal2<-df_animal %>%
          month=if_else(is.na(month),  "Cumulative", month),
          source="MSR_Surv",
          sheet="animals") %>%
-  filter(COUNTY!="Totals")
+  filter(COUNTY!="Totals")on | Data Manager
+# LICENSE: MIT
+# DATE: Dec 13, 2021
+# NOTES:
+
+
 
 ############################### SCRATCH
 
