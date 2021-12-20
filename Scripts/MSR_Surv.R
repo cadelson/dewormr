@@ -4,9 +4,9 @@
 # DATE: Dec 13, 2021
 # NOTES:
 
-df_filepath_surv <- "~/Github/dewormr/Data/2021 MSR-Surv database.25.11.2021.Final _LJ..xlsx"
-df_filepath_hotline <- "~/Github/dewormr/Data/hotline report Oct-2021.xlsx"
-df_filepath_animals <- "~/Github/dewormr/Data/Animal Rumors 2021_OCT.xlsx"
+df_filepath_surv <- "~/Github/dewormr/Data/Databases (November 2021)/2021 MSR-Surv database.18.12.2021.Final _LJ..xlsx"
+df_filepath_hotline <- "~/Github/dewormr/Data/Databases (November 2021)/Hotline report Nov -2021.xlsx"
+df_filepath_animals <- "~/Github/dewormr/Data/Databases (November 2021)/Animal Rumors 2021_November,2021.LJ.xlsx"
 
 
 #MSR Data
@@ -42,7 +42,7 @@ df_non_msr_surv_1<-df_non_msr_surv %>%
 #Non MSR RPIF 
 df_RPIF <- openxlsx::read.xlsx(df_filepath_surv, sheet="Other Non MSR-Surv with RPIF.", startRow=2, fillMergedCells = TRUE, sep.names=" ")
 df_RPIF2<-df_RPIF %>% 
-  pivot_longer(c("Total Number of Rumours - 5":"Suspects-10"), names_to="indicator", values_to="value") %>%
+  pivot_longer(c("Total Number of Rumours - 5":"Suspects-11"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=as.numeric(month),
          month=month.name[month],
@@ -55,7 +55,7 @@ df_RPIF2<-df_RPIF %>%
 df_IDSR<- openxlsx::read.xlsx(df_filepath_surv, sheet="2021-IDSR Rumours.", startRow=2, fillMergedCells = TRUE, sep.names=" ")
 df_IDSR2<-df_IDSR %>%
   select(-"S/N") %>%
-  pivot_longer(c("NO.RUMOURS - 7":"SUSPECTS - 10"), names_to="indicator", values_to="value") %>%
+  pivot_longer(c("NO.RUMOURS - 7":"SUSPECTS - 11"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=as.numeric(month),
          month=month.name[month],
@@ -69,7 +69,7 @@ df_hotline<- openxlsx::read.xlsx(df_filepath_hotline, startRow=2, fillMergedCell
 df_hotline2<-df_hotline %>%
   select(-"S/N") %>%
   rename_all(toupper) %>%
-  pivot_longer(c("NO.RUMORS REPORTED - 10":"NO.SUSPECTS - 10"), names_to="indicator", values_to="value") %>%
+  pivot_longer(c("NO.RUMORS REPORTED - 11":"NO.SUSPECTS - 11"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=as.numeric(month),
          month=month.name[month],
@@ -81,9 +81,9 @@ df_hotline2<-df_hotline %>%
 # Animal Rumours Ensure no double counting
 df_animal<- openxlsx::read.xlsx(df_filepath_animals, startRow=2, fillMergedCells = TRUE, sep.names=" ")
 df_animal2<-df_animal %>%
-  select(-"S/N", -"Animal Types - 10") %>%
+  select(-"S/N", -"Animal Types - 11") %>%
   rename_all(toupper) %>%
-  pivot_longer(c("NO.RUMORS REPORTED - 10":"NO.SUSPECTS - 10"), names_to="indicator", values_to="value") %>%
+  pivot_longer(c("NO.RUMORS REPORTED - 11":"NO.SUSPECTS - 11"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=as.numeric(month),
          month=month.name[month],
