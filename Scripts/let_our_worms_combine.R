@@ -97,18 +97,107 @@ df<-df_rough %>%
       indicator=="cso/po/cgwfp/  sfc/spo/ta " ~ "visit_cso_po_spo_ta",
       indicator=="cso/po/cgwfp/  sfc/spo/ta " ~ "visit_cso_po_spo_ta",
       indicator=="cso/ po/ cgwfp/ sfc/ spo/ ta " ~ "visit_cso_po_spo_ta",
-      indicator=="targeted\r\n(y = 1, n = 0) " ~ "abate_targeted",
-      indicator=="eligible 3\r\n(y = 1, n = 0) " ~ "abate_eligible",
-      indicator=="eligible\r\n(y = 1, n = 0) " ~ "abate_eligible",
-      indicator=="treated 3\r\n(y = 1, n = 0) " ~ "abate_treated",
-      indicator=="treated\r\n(y = 1, n = 0) " ~ "abate_treated",
+      indicator=="abate_targeted" ~ "abate_targeted",
+      indicator=="abate_eligible" ~ "abate_eligible",
+      indicator=="abate_treated" ~ "abate_treated",
       indicator=="if not treated, why? " ~ "abate_reason_untreated"))
 
-df_clean %>% 
+rm(df_msr_cr, df_msr_cr_1, df_msr_surv, df_msr_surv_1, df_abate, df_abate_2, df_animal,
+   df_animal2, df_hotline, df_hotline2, df_IDSR, df_IDSR2, df_non_msr_cr, df_non_msr_cr_1,
+   df_non_msr_surv, df_non_msr_surv_1, df_RPIF, df_RPIF2, df_rough)
+
+df %>% 
+  filter(month=="November",
+         payam %in% c("Malueth", "Puluk", "Dor", "Paweng", 
+                      "Mayen", "Makuac", "Wunlit"),
+         indicator %in% c("staff_vv", "hp_working", "hh_total", "filter_hh_cloth", "pop_total",
+                          "filter_dist_pipe", "abate_eligible", "abate_treated", "cr_day"))
+
+df %>% 
+  filter(month=="November",
+         indicator %in% c("rumours_total", "rumours_invest", 
+                              "rumours_invest_24", "suspects_total"),
+         sheet %in% c("MSR_Surv", "Non_MSR_Surv", "RPIF")) %>% 
+  group_by(county, indicator) %>% 
+  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
+  View()
+
+df %>% 
+  filter(month=="October",
+         county=="Tonj South",
+         indicator %in% c("rumours_total", "rumours_invest", 
+                          "rumours_invest_24", "suspects_total"),
+         sheet %in% c("MSR_Surv", "Non_MSR_Surv", "RPIF")) %>% 
+  group_by(county, payam, indicator) %>% 
+  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
+  View()
+
+df %>% 
+  filter(month=="October",
+         indicator=="rumours_total") %>% 
+  group_by(sheet) %>% 
+  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
+  View()
+
+df %>% 
+  filter(month=="November",
+         indicator %in% c("rumours_total"),
+         sheet %in% c("hotline", "IDSR")) %>% 
+  group_by(state, county, payam, sheet, indicator) %>% 
+  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
+  View()
+
+  
+df %>% 
+  filter(month=="November",
+         indicator %in% c("rumours_self", "rumours_informer"),
+         sheet %in% c("MSR_Surv", "Non_MSR_Surv", "RPIF")) %>% 
+  group_by(state, county, payam, indicator) %>% 
+  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
+  View()
+
+df %>% 
+  filter(month=="October",
+         county=="Tonj South",
+         indicator %in% c("rumours_self", "rumours_informer"),
+         sheet %in% c("MSR_Surv", "Non_MSR_Surv", "RPIF")) %>% 
+  group_by(state, county, payam, indicator) %>% 
+  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
+  View()
+
+df %>% 
+  filter(month=="November",
+         indicator %in% c("rumours_self", "rumours_informer"),
+         sheet %in% c("RPIF")) %>% 
+  group_by(state, county, payam, indicator) %>% 
+  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
+  View()
+
+df %>% 
+  filter(sheet=="RPIF",
+         county=="Kapoeta East") %>% 
+  View()
+  
+  
+df %>% 
+  filter(month=="November",
+         reporting_unit %in% c("Tomrok", "Apukdit", "Block 1", "Kengel Cc"),
+         indicator %in% c("protected_wells")) %>% 
+  group_by(payam, boma, reporting_unit, sheet, indicator) %>% 
+  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
+  View()
+
+                
+
+df %>% 
   distinct(indicator) %>% 
   print(n=Inf)
 
-df_clean %>% distinct(county) %>% arrange(county) %>% print(n=Inf)
+df %>% 
+  distinct(month) %>% 
+  print(n=Inf)
+
+df %>% distinct(county) %>% arrange(county) %>% print(n=Inf)
 
 df_clean %>% 
   filter(payam %in% c("Paweng", "Pieri", "Malueth", "Puluk"),
@@ -123,9 +212,10 @@ df_clean %>%
   View()
 
 
-df_clean %>% 
+df %>% 
   filter(month=="October",
-         indicator %in% c("abate_targeted", "abate_eligible", "abate_treated")) %>%
+         indicator %in% c("abate_targeted", "abate_eligible", "abate_treated"),
+         county=="Tonj East") %>%
   group_by(state, county, payam, indicator) %>% 
   summarise(across(c(value), sum, na.rm = TRUE)) %>% 
   View()
@@ -136,7 +226,7 @@ df_clean %>%
     filter(reason_no_abate!="NA") %>%
     group_by(month, state, county, payam, reason_no_abate) %>% 
     count(reason_no_abate, payam, sort=TRUE) %>% 
-    View()
+    View() m
 
 #   group_by(COUNTY) %>% 
 #   summarise(across(c(`Total Number of Rumours - 2021`,
