@@ -31,16 +31,12 @@ df_abate_output<-df %>%
     "Treated Water Sources"=abate_treated,
     "Ineligible Water Sources"=abate_targeted-abate_eligible,
     "DNR"=case_when(
-      str_detect(county, "Tonj East") & str_detect(month, "November") ~"1",
-      str_detect(payam, "Thiet") & str_detect(month, "September") ~"1",
-      str_detect(county, "Tonj South") & str_detect(month, "August") ~"1",
-      TRUE~"0")) %>% 
+      str_detect(county, "Tonj East") & str_detect(month, "November") ~1,
+      str_detect(payam, "Thiet") & str_detect(month, "September") ~1,
+      str_detect(county, "Tonj South") & str_detect(month, "August") ~1,
+      TRUE~0)) %>% 
   select(-abate_targeted, -abate_eligible, -abate_treated, -abate_reason_untreated) %>%
-  rename(
-    "State"=state,
-    "County"=county,
-    "Payam"=payam,
-    "Month"=month)
+  rename_with(.cols = c(state, county, payam, month), str_to_sentence)
 
 df_abate_cumulative<-df_abate_output %>% 
   group_by(State, County, Payam) %>% 

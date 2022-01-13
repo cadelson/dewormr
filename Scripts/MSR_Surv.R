@@ -5,7 +5,7 @@
 # DATE: Dec 13, 2021
 # NOTES:
 
-df_filepath_surv <- "~/Github/dewormr/Data/Databases (November 2021)/2021 MSR-Surv database.18.12.2021.Final _LJ..xlsx"
+df_filepath_surv <- "~/Github/dewormr/Data/Databases (November 2021)/2021 MSR-Surv database.05.1.2022.Final _LJ^.xlsx"
 df_filepath_hotline <- "~/Github/dewormr/Data/Databases (November 2021)/Hotline report Nov -2021.xlsx"
 df_filepath_animals <- "~/Github/dewormr/Data/Databases (November 2021)/Animal Rumors 2021_November,2021.LJ.xlsx"
 
@@ -92,26 +92,3 @@ df_animal2<-df_animal %>%
          source="MSR_Surv",
          sheet="animals") %>%
   filter(COUNTY!="Totals")
-
-
-
-############################### SCRATCH
-
-# df_msr_surv_1 %>% 
-#   filter(indicator=="Pipe Filters Distributed This Month ",
-#          month=="October",
-#          COUNTY=="UROR") %>% 
-#   group_by(PAYAM, `REPORTING UNIT`) %>% 
-#   summarise(across(c(value), sum, na.rm = TRUE)) %>% 
-#   View()
-
-
-
-# df_msr_surv %>% 
-#   group_by(COUNTY) %>% 
-#   summarise(across(c(`Total Number of Rumours - 2021`,
-#                      `Total number of rumours investigated - 2021`, 
-#                      `Total number of rumours investigated within 24 hours - 2021`), sum, na.rm = TRUE)) %>%
-#   mutate(investigated_percent= `Total number of rumours investigated within 24 hours - 2021`/`Total Number of Rumours - 2021`) %>% 
-#   View()
-
