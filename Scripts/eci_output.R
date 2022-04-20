@@ -3,33 +3,37 @@
 # LICENSE: MIT
 # DATE: Dec 29, 2021
 # NOTES: Missing reporting units: Agricultural/Wungai Cc, Apukdit, Rumkier
-#Make sure VV numbers are from correct sheet
+
+
 `%notin%` <- Negate(`%in%`)
 data_out <- "~/Github/dewormr/Dataout"
 current_ec<-c("Block 1", "Wunethony", "Nyakhor Kamel", "Nyakhor Manyak", "Wechotda", "Kengel Cc",
                "Baragep", "Malueth Cc", "Keny Cc", "Bardhiak Cc", "Wunbul Cc", "Mayom Cc", "Tomrok",
-               "Panakech", "Wungai Cc", "Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier")
+               "Panakech", "Wungai Cc", "Ruop Cc", "Manyiel Cc", "Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier",
+              "Rumkiir")
 past_ec<-c("Ameer", "Ngadiang Cc", "Parieng Cc", "Panhomchet Cc Zone", "Achol Manak")
 
-months_not_this_year<-c("December", "Cumulative")
-df %>% filter(reporting_unit %in% c(ec_villages)) %>% distinct(reporting_unit)
 
-df_eci_output <- df %>% 
-  select(-vas, -cc, -name_of_water_source, -combined_merged_water_source_name, -water_source_id,
+df_eci_output <- df_21_22 %>% 
+  select(-vas, -name_of_water_source, -combined_merged_water_source_name, -water_source_id,
          -type_of_water_source, -ev_using_water_source, -reason_no_abate, -villages_in_reporting_unit,
-         -name_of_villages_combined) %>% 
+         -name_of_villages_combined, -risk_level) %>% 
   filter(reporting_unit %in% c(current_ec, past_ec),
-         month %notin% months_not_this_year,
+         supervisory_area %notin% c("Gaak", "Ugel"),
+         month != "Cumulative",
          county %in% c("Uror", "Rumbek North", "Awerial", "Tonj East", "Tonj South"),
+         #March 31, 2022 - Filtering out Rumdit from Makuac area, not in endemic cluster
+         payam!="Makuac",
          indicator %in% c("cases_new", "staff_vv", "hp_working", "hh_total", "filter_hh_cloth",
                           "pop_total", "filter_dist_pipe", "abate_targeted", "abate_eligible",
                           "abate_treated", "activity_cra", "cr_days", "cr_reached", "ed_video",
-                          "ed_audio", "ed_integrated", "visit_as_hw", "visit_pso_fo", "visit_cso_po_spo_ta"),
+                          "ed_audio", "ed_integrated", "visit_as_hw", "visit_pso_fo", "visit_cso_po_spo_ta", 
+                          "report_expected", "report_received"),
          indicator %notin% c("visit_as_hw", "visit_pso_fo", "visit_cso_po_spo_ta") | source!="MSR_CR" ) %>%
   mutate(row=row_number()) %>% 
   pivot_wider(names_from=indicator, values_from=value) %>% 
   select(-row) %>% 
-  group_by(state, county, payam, reporting_unit, month) %>% 
+  group_by(state, county, payam, reporting_unit, month, year, cc) %>% 
   summarise(across(where(is.numeric), sum, na.rm = TRUE)) %>%
   ungroup() %>% 
   mutate(
@@ -40,14 +44,15 @@ df_eci_output <- df %>%
       reporting_unit %in% c("Ageer", "Ajakdit") & str_detect(month, "November") ~1,
       reporting_unit %in% c("Ageer", "Ajakdit", "Rumdit") & str_detect(month, "October") ~1,
       TRUE~0),
-    "RNE"=case_when(
-      county %in% c("Uror", "Rumbek North") & month %notin% c("August", "September","October", "November", "December") ~ 1,
-      county=="Awerial" & month %notin% c("November", "December") ~1,
-      reporting_unit %in% c("Ameer", "Ngadiang Cc", "Parieng Cc", "Panhomchet Cc Zone") & month %in% c("October", "November", "December") ~1,
-      reporting_unit %in% c("Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier") & month %notin% c("October", "November", "December") ~1,
-      county=="Tonj South" & month %in% c("October", "November", "December") ~1,
-      str_detect(county, "Tonj East") & str_detect(month, "October") ~1,
-      TRUE~0),
+    #3/30/22 - Removed, now using report_expected indicator to determine RNE
+    # "RNE"=case_when(
+    #   county %in% c("Uror", "Rumbek North") & month %notin% c("August", "September","October", "November", "December") ~ 1,
+    #   county=="Awerial" & month %notin% c("November", "December") ~1,
+    #   reporting_unit %in% c("Ameer", "Ngadiang Cc", "Parieng Cc", "Panhomchet Cc Zone") & month %in% c("October", "November", "December") ~1,
+    #   reporting_unit %in% c("Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier") & month %notin% c("October", "November", "December") ~1,
+    #   county=="Tonj South" & month %in% c("October", "November", "December") ~1,
+    #   str_detect(county, "Tonj East") & str_detect(month, "October") ~1,
+    #   TRUE~0),
     "reporting_unit_vacant_?"=case_when(
       hh_total=="0" ~ 0,
       hh_total>0 ~ 1),
@@ -157,14 +162,14 @@ df_eci_output <- df %>%
 df_eci_cumulative<-df_eci_output %>% 
   select(-`Total Cases 2020`, -`Total Cases Contained 2020`, -`Total Cases 2021`, -`Priority Villages`,
          -`GPS?`) %>% 
-  group_by(State, County, Payam, `Reporting Unit`, `Current or Past 2021 Endemic Cluster`) %>% 
+  group_by(State, County, Payam, `Reporting Unit`, `Current or Past 2021 Endemic Cluster`, year, cc) %>% 
   summarise(across(where(is.numeric), sum, na.rm = TRUE)) %>% 
   mutate("Month"="YTD")
 
 df_eci_cumulative2<-df_eci_output %>% 
   select(State, County, Payam, `Reporting Unit`, `Current or Past 2021 Endemic Cluster`,
-         `Total Cases 2020`, `Total Cases Contained 2020`, `Total Cases 2021`, `Priority Villages`, `GPS?`) %>% 
-  group_by(State, County, Payam, `Reporting Unit`, `Current or Past 2021 Endemic Cluster`) %>% 
+         `Total Cases 2020`, `Total Cases Contained 2020`, `Total Cases 2021`, `Priority Villages`, `GPS?`, year, cc) %>% 
+  group_by(State, County, Payam, `Reporting Unit`, `Current or Past 2021 Endemic Cluster`, year, cc) %>% 
   summarise(across(where(is.numeric), mean, na.rm = TRUE)) %>% 
   mutate("Month"="YTD") %>% 
   ungroup() %>% 
@@ -178,21 +183,4 @@ df_eci_output2<-df_eci_output %>%
 write_xlsx(df_eci_output2, file.path(data_out, "eci_output.xlsx"))
   
 
-# df_eci_output2 %>% 
-#   filter(`Reporting Unit` =="Ageer",
-#          Month=="November") %>% 
-#   View()
-# 
-# df %>% 
-#   filter(indicator=="visit_as_hw",
-#          month=="November",
-#          reporting_unit=="Ageer") %>% 
-#   View()
-#   group_by(reporting_unit) %>% 
-#   summarise(across(c(value), sum, na.rm = TRUE)) 
 
-df %>% 
-  filter(reporting_unit=="Wunbul Cc",
-         month=="November",
-         indicator=="pop_total") %>% 
-  View()

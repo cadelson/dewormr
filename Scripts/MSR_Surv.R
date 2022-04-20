@@ -1,18 +1,17 @@
 # PURPOSE: Munge and analyze MSR-Surv Database for routine analyses and prepare for appending with other program data
-# AUTHOR: Cody Adelsdf_
 # AUTHOR: Cody Adelson | Data Manager
 # LICENSE: MIT
 # DATE: Dec 13, 2021
 # NOTES:
 
-df_filepath_surv <- "~/Github/dewormr/Data/Databases (November 2021)/2021 MSR-Surv database.05.1.2022.Final _LJ^.xlsx"
-df_filepath_hotline <- "~/Github/dewormr/Data/Databases (November 2021)/Hotline report Nov -2021.xlsx"
-df_filepath_animals <- "~/Github/dewormr/Data/Databases (November 2021)/Animal Rumors 2021_November,2021.LJ.xlsx"
+df_filepath_surv <- "~/Github/dewormr/Data/Databases (Final 2021)/2021 MSR-Surv database Updated .11.2.2022.Final _LJ^.xlsx"
+df_filepath_hotline <- "~/Github/dewormr/Data/Databases (December 2021)/Hotline report Dec -2021 Stitched.xlsx"
+df_filepath_animals <- "~/Github/dewormr/Data/Databases (December 2021)/Animal Rumors 2021_December^J2021.LJ_STITCHED.xlsx"
 
 
 #MSR Data
 df_msr_surv<- read_xlsx(df_filepath_surv, sheet="2021 MSR-Surv", skip=1)
-df_msr_surv_1<-df_msr_surv %>% 
+df_msr_surv<-df_msr_surv %>% 
   select(-...105, -`SENIOR PROGRAM OFFICER`:-`AREA SUPERVISOR`, -`VILLAGE VOLUNTERS`, -`NAME OF CHIEF`,
          -LATITUDE, -LONGITUDE) %>% 
   pivot_longer(c("Number of VVs - 1":"Received - 2021", "NUMBER OF ASs":"NUMBER OF FEMALE ASs", 
@@ -28,7 +27,7 @@ df_msr_surv_1<-df_msr_surv %>%
 
 #Non MSR
 df_non_msr_surv<- read_xlsx(df_filepath_surv, sheet="2021-Non MSR-Surv.Jan-oct.", skip=1)
-df_non_msr_surv_1<-df_non_msr_surv %>% 
+df_non_msr_surv<-df_non_msr_surv %>% 
   select(-`SENIOR PROGRAM OFFICER`:-`AREA SUPERVISOR`, -`VILLAGE VOLUNTERS`, -`NAME OF CHIEF`,
          -LATITUDE, -LONGITUDE) %>% 
   pivot_longer(c("Number of VVs - 1":"Received - 2021", "NUMBER OF ASs":"NUMBER OF FEMALE ASs", 
@@ -42,21 +41,22 @@ df_non_msr_surv_1<-df_non_msr_surv %>%
 
 #Non MSR RPIF 
 df_RPIF <- openxlsx::read.xlsx(df_filepath_surv, sheet="Other Non MSR-Surv with RPIF.", startRow=2, fillMergedCells = TRUE, sep.names=" ")
-df_RPIF2<-df_RPIF %>% 
-  pivot_longer(c("Total Number of Rumours - 5":"Suspects - 11"), names_to="indicator", values_to="value") %>%
+df_RPIF<-df_RPIF %>% 
+  pivot_longer(cols=where(is.numeric), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=as.numeric(month),
          month=month.name[month],
          month=if_else(is.na(month), "Cumulative", month),
          source="MSR_Surv",
          sheet="RPIF") %>% 
-  filter(PAYAM!="Grand Total")
+  filter(PAYAM!="Grand Total",
+         COUNTY!="Grand Total")
 
-# MSR IDSR Ensure no double counting
+# MSR IDSR
 df_IDSR<- openxlsx::read.xlsx(df_filepath_surv, sheet="2021-IDSR Rumours.", startRow=2, fillMergedCells = TRUE, sep.names=" ")
-df_IDSR2<-df_IDSR %>%
+df_IDSR<-df_IDSR %>%
   select(-"S/N") %>%
-  pivot_longer(c("NO.RUMOURS -7":"SUSPECTS - 11"), names_to="indicator", values_to="value") %>%
+  pivot_longer(cols=where(is.numeric), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=as.numeric(month),
          month=month.name[month],
@@ -65,12 +65,11 @@ df_IDSR2<-df_IDSR %>%
          sheet="IDSR") %>%
   filter(COUNTY!="TOTALS")
 
-# Hotline Report Ensure no double counting
-df_hotline<- openxlsx::read.xlsx(df_filepath_hotline, startRow=2, fillMergedCells = TRUE, sep.names=" ")
-df_hotline2<-df_hotline %>%
-  select(-"S/N") %>%
+# Hotline Report
+df_hotline<- openxlsx::read.xlsx(df_filepath_hotline, startRow=1, fillMergedCells = TRUE, sep.names=" ")
+df_hotline<-df_hotline %>%
   rename_all(toupper) %>%
-  pivot_longer(c("NO.RUMORS REPORTED - 11":"NO.SUSPECTS - 11"), names_to="indicator", values_to="value") %>%
+  pivot_longer(cols=where(is.numeric), names_to="indicator", values_to="value") %>% 
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=as.numeric(month),
          month=month.name[month],
@@ -79,12 +78,12 @@ df_hotline2<-df_hotline %>%
          sheet="hotline") %>%
   filter(COUNTY!="Totals")
 
-# Animal Rumours Ensure no double counting
-df_animal<- openxlsx::read.xlsx(df_filepath_animals, startRow=2, fillMergedCells = TRUE, sep.names=" ")
-df_animal2<-df_animal %>%
-  select(-"S/N", -"Animal Types - 11") %>%
+# Animal Rumours
+df_animal<- openxlsx::read.xlsx(df_filepath_animals, startRow=1, fillMergedCells = TRUE, sep.names=" ")
+df_animal<-df_animal %>%
+  select(-(starts_with("Animal Types"))) %>%
   rename_all(toupper) %>%
-  pivot_longer(c("NO.RUMORS REPORTED - 11":"NO.SUSPECTS - 11"), names_to="indicator", values_to="value") %>%
+  pivot_longer(cols=where(is.numeric), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=as.numeric(month),
          month=month.name[month],
@@ -92,3 +91,5 @@ df_animal2<-df_animal %>%
          source="MSR_Surv",
          sheet="animals") %>%
   filter(COUNTY!="Totals")
+
+

@@ -6,11 +6,11 @@
 
 `%notin%` <- Negate(`%in%`)
 
-df_filepath_abate <- "~/Github/dewormr/Data/Databases (November 2021)/2021 Abate database. Updated. 5.1.2021.xlsx"
+df_filepath_abate <- "~/Github/dewormr/Data/Databases (Final 2021)/2021 Abate database. Updated. 16.2.2021..xlsx"
 df_abate<- read_xlsx(df_filepath_abate, sheet="2021 Abate Report", skip=1)
 
   #Abate Data
-  df_abate_2 <- df_abate %>%
+  df_abate <- df_abate %>%
     filter(STATE!="NA") %>% 
     select("STATE", "COUNTY", "PAYAM", "BOMA", "SUPERVISORY AREA", "REPORTING UNIT", "REPORTING UNIT CODE",
            "NAME OF WATER SOURCE", "Combined/ Merged Water Source Name", "Water Source ID", "Type of Water Source",

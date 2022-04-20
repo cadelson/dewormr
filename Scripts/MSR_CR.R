@@ -4,11 +4,11 @@
 # DATE: Dec 14, 2021
 # NOTES:
 
-df_filepath_cr <- "~/Github/dewormr/Data/Databases (November 2021)/2021 MSR-CR Database _Final. 05-1-2022.LJ^.xlsx"
+df_filepath_cr <- "~/Github/dewormr/Data/Databases (Final 2021)/2021 MSR-CR Database _Final. 15-02-2022.LJ^.xlsx"
 
 #MSR Data
 df_msr_cr<- read_xlsx(df_filepath_cr, sheet="2021 MSR-CR", skip=0)
-df_msr_cr_1 <- df_msr_cr %>% 
+df_msr_cr <- df_msr_cr %>% 
   select(-...183, -LATITUDE:-"AREA SUPERVISOR", -"VILLAGE VOLUNTERS", -"NAME OF CHIEF") %>% 
   pivot_longer(c("NUMBER OF ASs":"NUMBER OF FEMALE ASs", "NUMBER OF VVs":"NUMBER OF FEMALE VVs",
                  "Total Number of Residents Reached with Cash Reward Messages - 1":"SSGWEP Secretariat - 2021"), names_to="indicator", values_to="value") %>%
@@ -23,7 +23,7 @@ df_msr_cr_1 <- df_msr_cr %>%
 
 #Non MSR
 df_non_msr_cr<- read_xlsx(df_filepath_cr, sheet="Non -MSR-CR ,Database.Jan-Oct.", skip=1)
-df_non_msr_cr_1 <- df_non_msr_cr %>% 
+df_non_msr_cr<- df_non_msr_cr %>% 
   select(-LATITUDE:-"AREA SUPERVISOR", -"VILLAGE VOLUNTERS", -"NAME OF CHIEF") %>% 
   pivot_longer(c("NUMBER OF ASs":"NUMBER OF FEMALE ASs", "NUMBER OF VVs":"NUMBER OF FEMALE VVs",
                  "Total Number of Residents Reached with Cash Reward Messages - 1":"SSGWEP Secretariat - 2021"), names_to="indicator", values_to="value") %>%

@@ -2,12 +2,16 @@
 # AUTHOR: Cody Adelson | Data Manager
 # LICENSE: MIT
 # DATE: Dec 14, 2021
-# NOTES:
+# NOTES: Feb 2022- Now writes file
 
-df_rough<-bind_rows(df_msr_surv_1, df_non_msr_surv_1, df_RPIF2, df_IDSR2, df_hotline2,
-              df_animal2, df_msr_cr_1, df_non_msr_cr_1, df_abate_2)
+data_out <- "~/Github/dewormr/Dataout"
 
-df<-df_rough %>% 
+df_21_rough<-bind_rows(df_msr_surv, df_non_msr_surv, df_RPIF, df_IDSR, df_hotline,
+              df_animal, df_msr_cr, df_non_msr_cr, df_abate)
+
+write_csv(df_21_rough, file.path(data_out, "GWSD_2021_ROUGH.txt"))
+
+df_21<-df_21_rough %>% 
   clean_names() %>% remove_empty() %>% 
   mutate(across(c("state", "county", "payam", "boma", "supervisory_area",
                   "reporting_unit", "name_of_villages_combined", "name_of_water_source", 
@@ -27,33 +31,29 @@ df<-df_rough %>%
       state=="Lakes State" ~"Lakes",
       state=="Ees" ~ "Eastern Equatoria",
       county=="Abeyi" ~ "Abeyi Admin. Area",
-      county=="Awerial" ~ "Lakes",
       county=="Duk" ~ "Jonglei",
       county=="Fashoda" ~ "Upper Nile",
       county=="Juba" ~ "Central Equatoria",
-      county=="Kapoeta East" ~ "Eastern Equatoria",
-      county=="Kapoeta North" ~ "Eastern Equatoria",
-      county=="Kapoeta South" ~ "Eastern Equatoria",
-      county=="Mayom" ~ "Lakes",
-      county=="Panyijiar" ~ "Unity",
-      county %in% c("Rukbkona", "Rubkona") ~  "Unity",
-      county=="Rumbek East" ~ "Lakes",
-      county=="Terekeka" ~ "Lakes",
-      county=="Yirol West" ~ "Lakes",
-      payam=="Longeleya" ~ "Eastern Equatoria",
-      payam=="Machi I" ~"Eastern Equatoria",
-      payam=="Machi II" ~"Eastern Equatoria",
-      payam=="Pwata" ~ "Eastern Equatoria",
+      county %in% c("Tonj East", "Tonj North", "Gogrial West") ~ "Warrap",
+      county %in% c("Uror") ~ "Jonglei",
+      county %in% c("Magwei", "Magwi", "Kapoeta East", "Kapoeta North", "Kapoeta South", "Ikotos",
+                    "Lopa/Lafon", "Torit") ~ "Eastern Equatoria",
+      county %in% c("Panyijiar", "Panyijar", "Rukbkona", "Rubkona") ~ "Unity",
+      county %in% c("Awerial", "Mayom", "Rumbek East", "Terekeka", "Yirol West", "Rumbek Centre",
+                    "Rumbek North", "Wulu") ~ "Lakes",
+      county=="Aweil West" ~ "Northern Bahr El Ghazal",
+      county %in% c("Jur River", "Jur-River", "Raja", "Wau") ~ "Western Bahr El Ghazal",
+      payam %in% c("Longeleya", "Machi I", "Machi II", "Pwata", "Machi Ii") ~ "Eastern Equatoria",
       TRUE ~ state),
     county=case_when(
       county=="Jur-River" ~ "Jur River",
+      county=="Machi Ii" ~ "Machi II",
       county=="Panyijar" ~ "Panyijiar",
       county=="Rumbek Center" ~ "Rumbek Centre",
       county=="Rukbkona" ~ "Rubkona",
+      county=="Magwei" ~ "Magwi",
       payam=="Longeleya" ~ "Kapoeta South",
-      payam=="Machi I" ~"Kapoeta South",
-      payam=="Machi II" ~"Kapoeta South",
-      payam=="Pwata" ~ "Kapoeta South",
+      payam %in% c("Machi I", "Machi II", "Pwata", "Machi Ii") ~"Kapoeta South",
       TRUE~county),
     payam=case_when(
       payam=="Pulchol" ~"Pulchuol",
@@ -134,125 +134,28 @@ df<-df_rough %>%
       indicator=="abate_targeted" ~ "abate_targeted",
       indicator=="abate_eligible" ~ "abate_eligible",
       indicator=="abate_treated" ~ "abate_treated",
-      indicator=="if not treated, why? " ~ "abate_reason_untreated")) %>% 
-  mutate("value"=case_when(
-    indicator=="report_expected" & county %in% c("Yirol West", "Rumbek East", "Yirol East", "Aweil Centre", "Raja", "Mvolo") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 0,
-    indicator=="report_expected" & county %in% c("Akobo", "Gogrial West", "Ikotos", "Jur River",
-                                                 "Lopa/Lafon", "Nyirol", "Rumbek Centre", "Rumbek North",
-                                                 "Tonj East", "Tonj South", "Torit", "Uror", "Wau", "Wulu") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 1,
-    indicator=="report_expected" & county=="Awerial" & payam %in% c("Dor", "Puluk") & month %in% c("November", "December") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 1,
-    indicator=="report_expected" & county=="Awerial" & payam %notin% c("Dor", "Puluk") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 0,
-    indicator=="report_expected" & county=="Awerial" & payam %in% c("Dor", "Puluk") & month %notin% c("November", "December") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 0,
-    indicator=="report_expected" & county=="Tonj North" & payam %in% c("Akop", "Marial-Lou") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 1,
-    indicator=="report_expected" & county=="Tonj North" & payam %in% c("Aliek", "Awuul", "Kirik", "Man-Loor", "Pagol", "Rual-Bet") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 0,
-    TRUE~value))
+      indicator=="if not treated, why? " ~ "abate_reason_untreated"))
+  # mutate("value"=case_when(
+  #   indicator=="report_expected" & county %in% c("Yirol West", "Rumbek East", "Yirol East", "Aweil Centre", "Raja", "Mvolo") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 0,
+  #   indicator=="report_expected" & county %in% c("Akobo", "Gogrial West", "Ikotos", "Jur River",
+  #                                                "Lopa/Lafon", "Nyirol", "Rumbek Centre", "Rumbek North",
+  #                                                "Tonj East", "Tonj South", "Torit", "Uror", "Wau", "Wulu") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 1,
+  #   indicator=="report_expected" & county=="Awerial" & payam %in% c("Dor", "Puluk") & month %in% c("November", "December") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 1,
+  #   indicator=="report_expected" & county=="Awerial" & payam %notin% c("Dor", "Puluk") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 0,
+  #   indicator=="report_expected" & county=="Awerial" & payam %in% c("Dor", "Puluk") & month %notin% c("November", "December") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 0,
+  #   indicator=="report_expected" & county=="Tonj North" & payam %in% c("Akop", "Marial-Lou") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 1,
+  #   indicator=="report_expected" & county=="Tonj North" & payam %in% c("Aliek", "Awuul", "Kirik", "Man-Loor", "Pagol", "Rual-Bet") & sheet %in% c("MSR_Surv", "Non_MSR_Surv") ~ 0,
+  #   TRUE~value))
 
-df %>% 
-  filter(county %in% c("Awerial", "Tonj North"),
-         payam %in% c("Dor", "Puluk", "Akop", "Marial-Lou"))
+df_21 %>% 
+  filter(indicator %in% c("rumours_total", "rumours_invest")) %>% 
+  pivot_wider(names_from=indicator, values_from=value) %>% 
+  filter(rumours_invest>rumours_total) %>% 
+  View()
 
 
 rm(df_msr_cr, df_msr_cr_1, df_msr_surv, df_msr_surv_1, df_abate, df_abate_2, df_animal,
    df_animal2, df_hotline, df_hotline2, df_IDSR, df_IDSR2, df_non_msr_cr, df_non_msr_cr_1,
    df_non_msr_surv, df_non_msr_surv_1, df_RPIF, df_RPIF2, df_rough)
 
-#Check reports received
-df %>%
-  filter(indicator %in% c("report_expected", "report_received"),
-         month %notin% c("Cumulative", "December"),
-         reporting_unit!="Wech Nyhal",
-         vas=="1") %>%
-  select(state, county, payam, boma, reporting_unit, indicator, month, value, sheet) %>%
-  mutate(row=row_number()) %>%
-  pivot_wider(names_from=indicator, values_from=value) %>%
-  select(-row) %>%
-  group_by(state, county, payam, month, reporting_unit, sheet) %>%
-  summarise(across(where(is.numeric), sum, na.rm = TRUE)) %>%
-  filter(report_expected>report_received) %>%
-  write_xlsx(file.path(data_out, "non_reporting_reporting_unit_vas.xlsx"))
-
-df %>%
-  filter(indicator %in% c("report_expected", "report_received"),
-         month %notin% c("Cumulative", "December"),
-         reporting_unit!="Wech Nyhal") %>%
-  select(state, county, payam, boma, reporting_unit, indicator, month, value, sheet, vas) %>%
-  mutate(row=row_number()) %>%
-  pivot_wider(names_from=indicator, values_from=value) %>%
-  select(-row) %>%
-  group_by(vas, state, county, payam, reporting_unit, month, sheet) %>%
-  summarise(across(where(is.numeric), sum, na.rm = TRUE)) %>%
-  filter(report_expected>report_received) %>%
-  write_xlsx(file.path(data_out, "non_reporting_reporting_unit.xlsx"))
-
-df %>% 
-  filter(indicator=="abate_targeted",
-         month=="November",
-         payam=="Makuac") %>% 
-  group_by(payam, indicator, month) %>% 
-  summarise(across(where(is.numeric), sum, na.rm = TRUE)) %>%
-  View()
-
-df %>% 
-  filter(source=="MSR_Surv",
-         payam=="Paweng",
-         month !="December",
-         month!="Cumulative") %>% 
-  group_by(payam, month) %>% 
-  summarise(across(where(is.numeric), sum, na.rm = TRUE)) %>%
-  View()
-
-
-df %>% 
-  filter(county %in% c("Tonj East"),
-         month %in% c("November"),
-         indicator %in% c("rumours_total", "rumours_invest", "rumours_invest_24",
-                          "suspects_total")) %>% 
-  group_by(payam, month, indicator) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
-  print(n=Inf)
-
-df %>% 
-  filter(payam=="Tonj",
-         month=="August",
-         indicator %in% c("abate_targeted", "abate_eligible", "abate_treated")) %>% 
-  group_by(reporting_unit, month, indicator) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
-  View()
-  
-df %>% 
-  filter(county %in%  c("Tonj East"),
-         month %in% c("November"),
-         indicator %in% c("rumours_total", "rumours_self", "rumours_informer")) %>% 
-  group_by(payam, month, indicator) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
-  print(n=Inf)
-
-df %>% 
-  filter(county=="Wau",
-         month=="January",
-         indicator %in% c("rumours_total")) %>%
-  group_by(county, month, indicator, sheet) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
-  print(n=Inf)
-
-df %>% 
-  filter( month=="January",
-         indicator %in% c("rumours_total")) %>%
-  group_by(month, indicator, sheet) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
-  print(n=Inf)
-
-df %>% 
-  filter(reporting_unit=="Achol Manak",
-         month=="August") %>% 
-  group_by(county, payam, month, indicator, sheet) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
-  View()
-
-df %>% 
-  filter(vas=="1",
-         county=="Tonj East",
-         indicator %in% c("report_expected", "report_received"),
-         month=="November") %>% 
-  group_by(payam, indicator) %>% 
-  summarise(across(c(value), sum, na.rm=TRUE))
+write_csv(df_21, file.path(data_out, "GWSD_2021_FINAL.txt"))

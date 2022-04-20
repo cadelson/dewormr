@@ -2,9 +2,11 @@
 # AUTHOR: Cody Adelson | Data Manager
 # LICENSE: MIT
 # DATE: Dec 23, 2021
-# NOTES:
+# MARCH 9 2022 - STANDARDIZE AS ONLY VAS =1 FOR ALL
 
-current_month<-("November")
+current_month<-("February")
+
+
 level_1 <- c("Uror", "Awerial", "Tonj East", "Rumbek North")
 level_2<- c("Akobo", "Nyirol", "Tonj South", "Tonj North", "Rumbek Centre")
 level_3<- c("Wau", "Jur River", "Torit", "Lopa/Lafon", "Kapoeta East", "Kapoeta South",
@@ -92,7 +94,7 @@ df %>%
 #Number of 1+ Villages/CCs with health education each month
 df %>% 
   filter(indicator %in% c("cases_new", "activity_cra"),
-         #month==current_month,
+         month==current_month,
          reporting_unit %in% c(villages_1plus)) %>% 
   group_by(reporting_unit, month, indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE)) %>% 
@@ -101,6 +103,7 @@ df %>%
 #Number of VAS/NVAs receiving at least one health education session each month (level 1 and 2)
 df %>% 
   filter(month==current_month,
+         vas=="1",
          indicator=="activity_cra",
          county %in% c(level_1, level_2),
          value>0) %>%
@@ -111,6 +114,7 @@ df %>%
 df %>% 
   filter(month==current_month,
          indicator=="hp_working",
+         vas=="1",
          value==0) %>%
   group_by(cc) %>% 
   distinct(reporting_unit, boma, payam) %>% 
@@ -118,6 +122,7 @@ df %>%
 #VAS with no safe drinking water and 100% filter coverage
 df %>% 
   filter(month==current_month,
+         vas=="1",
          indicator %in% c("hp_working", "hh_total", "filter_hh_cloth")) %>% 
   pivot_wider(names_from = indicator, values_from=value) %>% 
   filter(hh_total>0,
@@ -162,22 +167,15 @@ df %>%
   distinct(reporting_unit, boma, payam) %>% 
   count()
 #Number of VAS with trained and supervised village volunteers
-###FOLLOW UP IF THIS SHOULD BE JUST FOR VAS?
 df %>% 
   filter(month==current_month,
          indicator=="staff_vv",
+         vas==1,
          value>0) %>% 
   group_by(cc) %>% 
   distinct(reporting_unit, boma, payam) %>% 
   count()
-####################VVS FOR ADAM
-df %>% 
-  filter(indicator %in% c("staff_vv", "staff_vv_male", "staff_vv_female", "staff_as",
-                          "staff_as_male", "staff_as_female")) %>% 
-  group_by(indicator, sheet, month) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE)) %>% 
-  View()
-  
+
 #1+ villages with trained and supervised VVS
 df %>% 
   filter(month==current_month,
@@ -201,26 +199,29 @@ df %>%
 #Number of 1+ villages targeted for ABATE (in transmission period and with at least one eligible water source)
 df %>% 
   filter(reporting_unit %in% c(villages_1plus),
-         indicator %in% c("abate_targeted", "abate_eligible")) %>% 
+         indicator %in% c("abate_targeted", "abate_eligible", "abate_treated")) %>% 
   group_by(cc, month) %>% 
   group_by(reporting_unit, month, indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE)) %>%
   pivot_wider(names_from=indicator, values_from=value) %>% 
   filter(abate_eligible>0,
-         abate_targeted>0)
-#Number of water sources in 1+villages targeted for ABATE application
+         abate_targeted>0) %>% 
+  View()
+#=======================#Number of water sources in 1+villages targeted for ABATE application
 df %>% 
   filter(reporting_unit %in% c(villages_1plus),
          indicator %in% c("abate_targeted", "abate_eligible", "abate_treated"),
          month==current_month,
          value>0) %>% 
-  group_by(indicator) %>% 
+  group_by(indicator, cc) %>% 
   distinct(name_of_water_source) %>% 
   count()
-  
-###################SUPERVISORY VISITS FOR ADAM
+#=================Number of VAS that are NVAs in Level 1/2/3
 df %>% 
-  filter(state %in% c("Warrap", "Western Bahr El Ghazal", "Jonglei", "Eastern Equatoria" ),
-         indicator %in% c("visit_as_hw", "visit_pso_fo", "visit_cso_po_spo_ta", "visit_secretariat"),
-         month!="Cumulative") %>%
-  summarise(across(c(value), sum, na.rm=TRUE))
+  filter(month==current_month,
+         vas=="1",
+         indicator %in% c("report_expected", "report_received"),
+         county %in% c(level_1)) %>% 
+  group_by(indicator, cc) %>% 
+  summarise(across(c(value), sum, na.rm = TRUE))
+
