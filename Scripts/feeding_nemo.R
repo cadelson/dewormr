@@ -3,97 +3,73 @@
 # LICENSE: MIT
 # DATE: Dec 23, 2021
 # MARCH 9 2022 - STANDARDIZE AS ONLY VAS =1 FOR ALL
+# MAY 2022 - FOR NEXT NEMO, MAKE SURE RISK LEVELS CAPTURE ALL COUNTIES
 
-current_month<-("February")
+current_month<-("March")
+current_year<-("2022")
 
 
 level_1 <- c("Uror", "Awerial", "Tonj East", "Rumbek North")
-level_2<- c("Akobo", "Nyirol", "Tonj South", "Tonj North", "Rumbek Centre")
+level_2<- c("Akobo", "Nyirol", "Tonj South", "Tonj North", "Rumbek Centre", "Terekeka")
 level_3<- c("Wau", "Jur River", "Torit", "Lopa/Lafon", "Kapoeta East", "Kapoeta South",
             "Kapoeta North", "Riaga", "Ikotos", "Wulu", "Rumbek East")
-villages_1plus <- c("Tomrok", "Block 1", "Apukdit", "Kengel Cc")
+villages_1plus <- c("Tomrok", "Block 1", "Apukdit", "Kengel CC")
 
-#Number of new human GWD cases for VAS
-df %>%
-  filter(month==current_month,
-         indicator=="cases_new",
-         reporting_unit %in% c(villages_1plus),
-         cc=="0") %>% 
-  group_by(indicator) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE))
-#Number of new GWD cases for NVAs
-df %>%
-  filter(month==current_month,
-         reporting_unit %in% c(villages_1plus),
-         indicator=="cases_new",
-         cc=="1") %>% 
-  group_by(indicator) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE)) 
-#Number of new CONTAINED human GWD cases for VAS
-df %>%
-  filter(month==current_month,
-         reporting_unit %in% c(villages_1plus),
-         indicator=="cases_contained",
-         cc=="0") %>% 
-  group_by(indicator) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE))
-#Number of new CONTAINED human GWD cases for NVAS
-df %>%
-  filter(month==current_month,
-         reporting_unit %in% c(villages_1plus),
-         indicator=="cases_contained",
-         cc=="1") %>% 
-  group_by(indicator) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE))
 #Number of human GWD rumours reported for VAS/NVAs 
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          vas=="1",
          indicator %in% c("rumours_total", "rumours_invest_24"),
          sheet %in% c("MSR_Surv", "Non_MSR_Surv", "RPIF")) %>% 
   group_by(month, indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE))
 #Number of ANIMAL GWD rumours reported for VAS/NVAs 
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          indicator %in% c("rumours_total", "rumours_invest_24"),
          sheet %in% c("animals")) %>% 
   group_by(month, indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE))
 #Number of VAS and Received LEVEL ONE
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          vas=="1",
          indicator %in% c("report_expected", "report_received"),
          county %in% c(level_1)) %>% 
   group_by(indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE))
 #Number of VAS and Received LEVEL TWO
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          vas=="1",
          indicator %in% c("report_expected", "report_received"),
          county %in% c(level_2)) %>% 
   group_by(indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE))
 #Number of VAS and Received LEVEL THREE
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          vas=="1",
          indicator %in% c("report_expected", "report_received"),
          county %in% c(level_3)) %>% 
   group_by(indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE))
 #Number of 1+ Villages/CCs
-df %>% 
+df_21_22 %>% 
   filter(indicator=="cases_new",
          reporting_unit %in% c(villages_1plus)) %>% 
   group_by(reporting_unit, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE)) %>% 
   filter(value>0)
 #Number of 1+ Villages/CCs with health education each month
-df %>% 
+df_21_22 %>% 
   filter(indicator %in% c("cases_new", "activity_cra"),
+         year==current_year,
          month==current_month,
          reporting_unit %in% c(villages_1plus)) %>% 
   group_by(reporting_unit, month, indicator, cc) %>% 
@@ -101,8 +77,9 @@ df %>%
   pivot_wider(names_from = indicator, values_from=value) %>% 
   filter(activity_cra>0)
 #Number of VAS/NVAs receiving at least one health education session each month (level 1 and 2)
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          vas=="1",
          indicator=="activity_cra",
          county %in% c(level_1, level_2),
@@ -111,8 +88,9 @@ df %>%
   distinct(reporting_unit, boma, payam) %>% 
   count()
 #Number of VAS/NVAs with no access to safe drinking water
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          indicator=="hp_working",
          vas=="1",
          value==0) %>%
@@ -120,8 +98,9 @@ df %>%
   distinct(reporting_unit, boma, payam) %>% 
   count()
 #VAS with no safe drinking water and 100% filter coverage
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          vas=="1",
          indicator %in% c("hp_working", "hh_total", "filter_hh_cloth")) %>% 
   pivot_wider(names_from = indicator, values_from=value) %>% 
@@ -132,10 +111,11 @@ df %>%
   group_by(cc) %>% 
   distinct(reporting_unit, boma, payam) %>% 
   count()
-#Number of 1+ villages/CCs with no access to safe drinking water
-df %>% 
+#N-umber of 1+ villages/CCs with no access to safe drinking water
+df_21_22 %>% 
   filter(indicator %in% c("cases_new", "hp_working"),
          month==current_month,
+         year==current_year,
          vas==1,
          reporting_unit %in% c(villages_1plus)) %>% 
   group_by(reporting_unit, month, indicator, cc) %>% 
@@ -146,8 +126,9 @@ df %>%
   distinct(reporting_unit) %>% 
   count()
 #Number of 1+ villages/CCs with no access to safe drinking water with 100% CF
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          vas==1,
          reporting_unit %in% c(villages_1plus),
          indicator %in% c("hp_working", "hh_total", "filter_hh_cloth")) %>% 
@@ -160,15 +141,16 @@ df %>%
   distinct(reporting_unit, boma, payam) %>% 
   count()
 #Number of 1+ villages/CCs protected with Abate during transmission periods
-df %>% 
-  filter(reporting_unit %in% c(villages_1plus),
-         indicator %in% c("abate_treated")) %>% 
-  group_by(cc) %>% 
-  distinct(reporting_unit, boma, payam) %>% 
-  count()
+# df %>% 
+#   filter(reporting_unit %in% c(villages_1plus),
+#          indicator %in% c("abate_treated")) %>% 
+#   group_by(cc) %>% 
+#   distinct(reporting_unit, boma, payam) %>% 
+#   count()
 #Number of VAS with trained and supervised village volunteers
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          indicator=="staff_vv",
          vas==1,
          value>0) %>% 
@@ -177,8 +159,9 @@ df %>%
   count()
 
 #1+ villages with trained and supervised VVS
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          reporting_unit %in% c(villages_1plus),
          indicator=="staff_vv",
          value>0,
@@ -187,8 +170,9 @@ df %>%
   distinct(reporting_unit, boma, payam) %>% 
   count
 #Number of VAS conducting weekly case search (level I and II)
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          indicator=="activity_case_search",
          county %in% c(level_1, level_2),
          value>0,
@@ -197,7 +181,7 @@ df %>%
   distinct(reporting_unit, boma, payam) %>% 
   count()
 #Number of 1+ villages targeted for ABATE (in transmission period and with at least one eligible water source)
-df %>% 
+df_21_22 %>% 
   filter(reporting_unit %in% c(villages_1plus),
          indicator %in% c("abate_targeted", "abate_eligible", "abate_treated")) %>% 
   group_by(cc, month) %>% 
@@ -208,17 +192,19 @@ df %>%
          abate_targeted>0) %>% 
   View()
 #=======================#Number of water sources in 1+villages targeted for ABATE application
-df %>% 
+df_21_22 %>% 
   filter(reporting_unit %in% c(villages_1plus),
          indicator %in% c("abate_targeted", "abate_eligible", "abate_treated"),
          month==current_month,
+         year==current_year,
          value>0) %>% 
   group_by(indicator, cc) %>% 
   distinct(name_of_water_source) %>% 
   count()
 #=================Number of VAS that are NVAs in Level 1/2/3
-df %>% 
+df_21_22 %>% 
   filter(month==current_month,
+         year==current_year,
          vas=="1",
          indicator %in% c("report_expected", "report_received"),
          county %in% c(level_1)) %>% 

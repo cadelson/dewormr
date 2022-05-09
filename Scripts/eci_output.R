@@ -7,20 +7,18 @@
 
 `%notin%` <- Negate(`%in%`)
 data_out <- "~/Github/dewormr/Dataout"
-current_ec<-c("Block 1", "Wunethony", "Nyakhor Kamel", "Nyakhor Manyak", "Wechotda", "Kengel Cc",
-               "Baragep", "Malueth Cc", "Keny Cc", "Bardhiak Cc", "Wunbul Cc", "Mayom Cc", "Tomrok",
-               "Panakech", "Wungai Cc", "Ruop Cc", "Manyiel Cc", "Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier",
+current_ec<-c("Block 1", "Wunethony", "Nyakhor Kamel", "Nyakhor Manyak", "Wechotda", "Kengel CC",
+               "Baragep", "Malueth CC", "Keny CC", "Bardhiak CC", "Wunbul CC", "Mayom CC", "Tomrok",
+               "Panakech", "Wungai CC", "Ruop CC", "Manyiel CC", "Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier",
               "Rumkiir")
-past_ec<-c("Ameer", "Ngadiang Cc", "Parieng Cc", "Panhomchet Cc Zone", "Achol Manak")
+past_ec<-c("Ameer", "Ngadiang CC", "Parieng CC", "Panhomchet CC Zone", "Achol Manak")
 
 
 df_eci_output <- df_21_22 %>% 
   select(-vas, -name_of_water_source, -combined_merged_water_source_name, -water_source_id,
-         -type_of_water_source, -ev_using_water_source, -reason_no_abate, -villages_in_reporting_unit,
-         -name_of_villages_combined, -risk_level) %>% 
+         -type_of_water_source, -ev_using_water_source, -reason_no_abate, -risk_level) %>% 
   filter(reporting_unit %in% c(current_ec, past_ec),
          supervisory_area %notin% c("Gaak", "Ugel"),
-         month != "Cumulative",
          county %in% c("Uror", "Rumbek North", "Awerial", "Tonj East", "Tonj South"),
          #March 31, 2022 - Filtering out Rumdit from Makuac area, not in endemic cluster
          payam!="Makuac",
@@ -63,7 +61,7 @@ df_eci_output <- df_21_22 %>%
       reporting_unit=="Achol Manak" ~ 1,
       TRUE ~ 0),
     "Total_Cases_2021"=case_when(
-      reporting_unit %in% c("Block 1", "Kengel Cc", "Apukdit", "Tomrok") ~ 1,
+      reporting_unit %in% c("Block 1", "Kengel CC", "Apukdit", "Tomrok") ~ 1,
       TRUE ~ 0),
     "Priority_Villages"=1,
     "Endemic_in_2019?"=0,
@@ -101,17 +99,17 @@ df_eci_output <- df_21_22 %>%
       TRUE ~NA_real_),
     "Total_Water_Sources"=case_when(
       abate_targeted>0 ~ as.numeric(abate_targeted),
-      TRUE ~NA_real_),
+      TRUE ~0),
     "Targeted_Water_Sources"=Total_Water_Sources,
     "Eligible_Water_Sources"=case_when(
       abate_targeted>0 ~ abate_eligible,
-      TRUE ~ NA_real_),
+      TRUE ~ 0),
     "Treated_Water_Sources"=case_when(
       abate_targeted>0 ~ abate_treated,
-      TRUE ~ NA_real_),
+      TRUE ~ 0),
     "1plus_Abate_Treatment?"=case_when(
       abate_targeted>0 & abate_treated>0~1,
-      abate_targeted==0 ~NA_real_,
+      abate_targeted==0 ~ 0,
       abate_targeted>0 & abate_treated==0 ~ 0,
       TRUE~0),
     #"1plus_Abate_Treatment?_(percent)"=`1plus_Abate_Treatment?`/Priority_Villages,
@@ -135,18 +133,11 @@ df_eci_output <- df_21_22 %>%
     "Integrated_Messaging_-_Days"=case_when(
       hh_total>0 ~ as.numeric(ed_integrated),
       TRUE ~ NA_real_),
-    "Supervisory_Visits_by_Area_Supervisors"=case_when(
-      hh_total>0 ~ as.numeric(visit_as_hw),
-      TRUE ~ NA_real_),
-    "Supervisory_Visits_by_Field_Officers"= case_when(
-      hh_total>0 ~ as.numeric(visit_pso_fo),
-      TRUE ~ NA_real_),
-    "Supervisory_Visits_by_Field_Supervisors"=case_when(
-      hh_total>0 ~ as.numeric(visit_cso_po_spo_ta),
-      TRUE ~ NA_real_),
+    "Supervisory_Visits_by_Area_Supervisors"=as.numeric(visit_as_hw),
+    "Supervisory_Visits_by_Field_Officers"= as.numeric(visit_pso_fo),
+    "Supervisory_Visits_by_Field_Supervisors"=as.numeric(visit_cso_po_spo_ta),
     "Received_Monthly_Supervision?"=case_when(
-      hh_total>0 & visit_as_hw+visit_pso_fo+visit_cso_po_spo_ta>0 ~1,
-      hh_total=="0" ~ NA_real_,
+      visit_as_hw+visit_pso_fo+visit_cso_po_spo_ta>0 ~1,
       TRUE~0),
     "report_abate?"=case_when(
       abate_targeted>0 ~ 1,

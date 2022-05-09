@@ -4,6 +4,80 @@
 # DATE: February 2, 2022
 # NOTES:
 
+df_21_22 %>% 
+  filter(vas=="1",
+         year=="2022",
+         month=="March",
+         report_expected==1) %>% 
+  group_by(risk_level) %>% 
+  distinct(reporting_unit) %>% 
+  count()
+
+df_21_22 %>% 
+  filter(indicator=="staff_vv",
+         month %in% c("January", "February", "March"),
+         year=="2022") %>% 
+  group_by(indicator, month, year) %>% 
+  summarise(across(where(is.numeric), sum, na.rm=TRUE)) %>% 
+  select(-vas)
+
+df_21_22 %>% 
+  filter(indicator %in% c("report_expected", "report_received", "hh_total", "filter_hh_cloth"),
+         vas=="1",
+         county=="Uror",
+         year=="2022",
+         month=="March",
+         sheet=="MSR_Surv") %>% 
+  select(state, county, payam, boma, reporting_unit, indicator, value, month, sheet) %>%
+  mutate(row = row_number()) %>% 
+  pivot_wider(names_from=indicator, values_from=value) %>% 
+  select(-row) %>%
+  group_by(state, county, payam, boma, reporting_unit, month, sheet) %>%
+  summarise(across(where(is.numeric), sum, na.rm=TRUE)) %>%
+  mutate(filter_coverage=filter_hh_cloth/hh_total,
+         filter_coverage=case_when(
+           filter_coverage>.95 ~ 1,
+           filter_coverage<.95 ~ 0)) %>%
+  mutate_if(is.numeric, ~1 * (. > 0)) %>% 
+  ungroup() %>% 
+  mutate(count=1) %>% 
+  View()
+
+df_ki1<-df_ki %>% 
+  filter(report_expected==1,
+         report_received==1,
+         hh_total==1) %>% 
+  group_by(rl, month, sheet) %>% 
+  summarise(across(where(is.numeric), sum, na.rm=TRUE)) %>% 
+  select(-hh_total, -visit_as_hw, -visit_pso_fo, -visit_secretariat, -visit_cso_po_spo_ta, -filter_hh_cloth) %>% 
+  mutate(across(where(is.numeric), ~ ./count)) %>% 
+  pivot_longer(where(is.numeric), names_to="indicator", values_to="value") %>% 
+  filter(indicator %notin% c("count", "report_received", "report_expected")) %>% 
+  View()
+
+df_ki2<-df_ki %>% 
+  filter(report_expected==1) %>% 
+  group_by(rl, month, sheet) %>% 
+  summarise(across(where(is.numeric), sum, na.rm=TRUE)) %>% 
+  select(rl, month, sheet, report_received, count) %>% 
+  mutate(across(where(is.numeric), ~ ./count)) %>% 
+  pivot_longer(where(is.numeric), names_to="indicator", values_to="value") %>% 
+  filter(indicator %notin% c("count"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 df_21 %>% 
   filter(month==current_month,
          county %in% c(level_3),

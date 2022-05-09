@@ -5,33 +5,16 @@
 # NOTES:
 
 data_out <- "~/Github/dewormr/Dataout"
-rl1 <- c("Uror", "Rumbek North", "Tonj East", "Awerial")
-rl2<-c("Nyirol", "Tonj North", "Tonj South", "Cueibet", "Rumbek Centre", "Mayendit",
-       "Panyijiar", "Yirol East", "Yirol West", "Terekeka")
 `%notin%` <- Negate(`%in%`)
-months_not_this_year<-c("Cumulative")
 
 df_rumour_output <- df_21_22 %>% 
-  filter(
-    #March 13, 2022 - removed month filter due to adding 2021 data
-    month %notin% months_not_this_year,
-         indicator %in% c("rumours_total", "suspects_total", "rumours_invest", "rumours_invest_24", 
+  filter(indicator %in% c("rumours_total", "suspects_total", "rumours_invest", "rumours_invest_24", 
                           "rumours_self", "rumours_informer", "cases_new", "report_expected")) %>% 
-  group_by(sheet, state, county, payam, indicator, month, cc, year, vas) %>% 
+  group_by(sheet, state, county, payam, indicator, month, cc, year, vas, risk_level) %>% 
   summarise(across(c(value), sum, na.rm=TRUE)) %>% 
   pivot_wider(names_from=indicator, values_from = value) %>% 
-  mutate(
-    # removed 3/27 - already included
-    # "cc"=case_when(
-    # str_detect(cc, "1") ~ "Cattle Camp",
-    # TRUE ~ "Village"),
-    "risk_level"=case_when(
-      county %in% c(rl1) ~ "Risk Level 1",
-      county %in% c(rl2) ~ "Risk Level 2",
-      TRUE ~ "Risk Level 3"),
-    "vas"=case_when(
-      str_detect(vas, "1") ~ "VAS",
-      TRUE ~ "Other"))
+  mutate("vas"=case_when(str_detect(vas, "1") ~ "VAS",
+                         TRUE ~ "Other"))
   #Removed all DNRs 3/14/22 
   # mutate(
   #   "filter_zeroes"=case_when(
