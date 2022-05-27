@@ -29,8 +29,9 @@ write_xlsx(df_vas_output, file.path(data_out, "vas_output.xlsx"))
 
 #April 1, 2022 - Summarise total missing reports by risk level for monthly narrative
 df_21_22 %>%
-  filter(month=="March",
+  filter(month=="April",
          year=="2022",
+         sheet=="MSR_Surv",
          indicator %in% c("report_expected", "report_received")) %>%
   mutate(value=as.numeric(value),
          row=row_number()) %>%
@@ -47,4 +48,4 @@ df_21_22 %>%
          "Payam"=payam,
          "Risk Level"=risk_level) %>% 
   select(" ", State, County, Payam, "Risk Level") %>% 
-  write_xlsx(file.path(data_out, "march_2022_missing_reports.xlsx"))
+  write_xlsx(file.path(data_out, "april_2022_missing_reports.xlsx"))

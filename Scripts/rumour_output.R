@@ -15,15 +15,6 @@ df_rumour_output <- df_21_22 %>%
   pivot_wider(names_from=indicator, values_from = value) %>% 
   mutate("vas"=case_when(str_detect(vas, "1") ~ "VAS",
                          TRUE ~ "Other"))
-  #Removed all DNRs 3/14/22 
-  # mutate(
-  #   "filter_zeroes"=case_when(
-  #     rumours_total==0 ~ "Include Non Reports",
-  #     TRUE ~ "Include Submitted Reports"),
-  #   "DNR"=case_when(
-  #     county %in% c("Tonj South") & str_detect(month, "November") ~1,
-  #     TRUE~0))
-
   
 df_rumour_cumulative<-df_rumour_output %>% 
   group_by(state, county, payam, sheet, cc, year, vas, risk_level) %>% 
@@ -38,23 +29,15 @@ df_reporting_method<-df_rumour_output2 %>%
   pivot_wider(names_from=sheet, values_from=rumours_total) %>% 
   select(-row, -rumours_invest, -rumours_invest_24, -suspects_total, -cases_new, -rumours_informer, -rumours_self) %>% 
   bind_rows(df_rumour_output2) %>% 
-  #3/15/22 - Removed filter zeroes and placed it in next step. Also replaced DNR and calculating with report expected
-  # mutate(
-    # "filter_zeroes"=case_when(
-    #   rumours_total>0 | hotline>0 | IDSR > 0 | RPIF>0 | cases_new>0 ~ "Include Submitted Reports",
-    #   TRUE ~ "Include Non Reports"),
-    # "DNR"=case_when(
-    #   county %in% c("Tonj South") & str_detect(month, "November") ~1,
-    #   TRUE~0)) %>% 
   filter(!is.na(state) | !is.na(county) | !is.na(payam))
 
 #To add filter option, collapse data frame and then merge with output on month and payam
 df_filter_non_reporting<-df_reporting_method %>% 
   group_by(county, payam, month, year) %>% 
-  summarise(across(c(rumours_total, hotline, IDSR, RPIF, cases_new, report_expected), sum, na.rm=TRUE)) %>% 
+  summarise(across(c(rumours_total, hotline, IDSR, Non_MSR_Other, cases_new, report_expected), sum, na.rm=TRUE)) %>% 
   mutate(
     "filter_zeroes"=case_when(
-      rumours_total>0 | hotline>0 | IDSR > 0 | RPIF>0 | cases_new>0 ~ "Include Submitted Reports",
+      rumours_total>0 | hotline>0 | IDSR > 0 | Non_MSR_Other>0 | cases_new>0 ~ "Include Submitted Reports",
       TRUE ~ "Include Non Reports"),
     "reporting_expected"=case_when(
       year==2022 & report_expected>0 ~ 1,

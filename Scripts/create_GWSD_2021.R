@@ -7,11 +7,11 @@
 
 `%notin%` <- Negate(`%in%`)
 data_out <- "~/Github/dewormr/Dataout"
-df_filepath_surv_21 <- "~/Github/dewormr/Data/Databases (Final 2021)/2021 MSR-Surv database Updated .11.2.2022.Final _LJ^.xlsx"
-df_filepath_hotline_21 <- "~/Github/dewormr/Data/Databases (Final 2021)/Hotline report Final -2021 Stitched.xlsx"
-df_filepath_animals_21 <- "~/Github/dewormr/Data/Databases (Final 2021)/Animal Rumors 2021_Final^J2021.LJ_STITCHED.xlsx"
-df_filepath_cr_21 <- "~/Github/dewormr/Data/Databases (Final 2021)/2021 MSR-CR Database _Final. 15-02-2022.LJ^.xlsx"
-df_filepath_abate_21 <- "~/Github/dewormr/Data/Databases (Final 2021)/2021 Abate database. Updated. 16.2.2021..xlsx"
+df_filepath_surv_21 <- "~/Github/dewormr/Data/2021_raw_data/Databases (Final 2021)/2021 MSR-Surv database Updated .11.2.2022.Final _LJ^.xlsx"
+df_filepath_hotline_21 <- "~/Github/dewormr/Data/2021_raw_data/Databases (Final 2021)/Hotline report Final -2021 Stitched.xlsx"
+df_filepath_animals_21 <- "~/Github/dewormr/Data/2021_raw_data/Databases (Final 2021)/Animal Rumors 2021_Final^J2021.LJ_STITCHED.xlsx"
+df_filepath_cr_21 <- "~/Github/dewormr/Data/2021_raw_data/Databases (Final 2021)/2021 MSR-CR Database _Final. 15-02-2022.LJ^.xlsx"
+df_filepath_abate_21 <- "~/Github/dewormr/Data/2021_raw_data/Databases (Final 2021)/2021 Abate database. Updated. 16.2.2021..xlsx"
 
 #============== MSR_SURV database
 #MSR Data
@@ -42,7 +42,7 @@ df_RPIF<-df_RPIF %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
          source="MSR_Surv",
-         sheet="RPIF") %>% 
+         sheet="Non_MSR_Other") %>% 
   filter(PAYAM!="Grand Total",
          COUNTY!="Grand Total")
 
@@ -280,8 +280,7 @@ df_21<-df_21_rough %>%
       TRUE ~ indicator))
 
 
-rm(df_msr_cr, df_msr_cr_1, df_msr_surv, df_msr_surv_1, df_abate, df_abate_2, df_animal,
-   df_animal2, df_hotline, df_hotline2, df_IDSR, df_IDSR2, df_non_msr_cr, df_non_msr_cr_1,
-   df_non_msr_surv, df_non_msr_surv_1, df_RPIF, df_RPIF2, df_rough)
+rm(df_msr_cr, df_msr_surv, df_abate, df_animal, df_hotline, df_IDSR, df_non_msr_cr,
+   df_non_msr_surv, df_RPIF, df_rough)
 
 write_csv(df_21, file.path(data_out, "GWSD_2021_Final.txt"))

@@ -5,11 +5,6 @@
 # NOTES:
 data_out <- "~/Github/dewormr/Dataout"
 
-#April 2022- new risk level variable, not needed
-# rl1 <- c("Uror", "Rumbek North", "Tonj East", "Awerial")
-# rl2<-c("Nyirol", "Tonj North", "Tonj South", "Cueibet", "Rumbek Centre", "Mayendit",
-#        "Panyijiar", "Yirol East", "Yirol West", "Terekeka")
-
 df_abate_output<-df_21_22 %>% 
   filter(sheet=="Abate") %>% 
   mutate("Negative CDC Result"=case_when(str_detect(reason_no_abate, "Negative") ~ 1, TRUE~0),

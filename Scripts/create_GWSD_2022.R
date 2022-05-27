@@ -1,15 +1,17 @@
 # PURPOSE: Munge and analyze 2022 MSR-Surv, Cash Reward and Abate Databases for routine analyses and append
-# AUTHOR: Cody Adelson
 # AUTHOR: Cody Adelson | Data Manager
 # LICENSE: MIT
 # DATE: March 8, 2022
 # NOTES: Consolidated from separate files for each database
-# For May - Stitch together MSR and Non MSR first before initial munge to save space
+# TO DO- Stitch together MSR and Non MSR first before initial munge to save space
+# Update May 13, 2022 - Adding lat and long data to file, need to add also to the 2021 data
+# Use glue for months, etc
+# upper case cc in 2021 dataset
 
 
 
 #Set file paths
-current_months<-c("January", "February", "March")
+current_months<-c("January", "February", "March", "April")
 rl1 <- c("Uror", "Rumbek North", "Tonj East", "Awerial")
 rl2<-c("Nyirol", "Tonj North", "Tonj South", "Cueibet", "Rumbek Centre", "Mayendit",
        "Panyijiar", "Yirol East", "Yirol West", "Terekeka")
@@ -19,18 +21,18 @@ rl1_22<-c("Uror", "Rumbek North", "Tonj East", "Awerial")
 rl2_22<-c("Nyirol", "Tonj North", "Tonj South", "Cueibet", "Rumbek Centre", "Mayendit",
           "Panyijiar", "Yirol East", "Yirol West", "Terekeka")
 data_out <- "~/Github/dewormr/Dataout"
-df_filepath_surv <- "~/Github/dewormr/Data/Databases (March 2022)/msr_surv_march_22_v8.xlsx"
-df_filepath_hotline <- "~/Github/dewormr/Data/Databases (March 2022)/hotline_rumours_march_22_v1.xlsx"
-df_filepath_animals <- "~/Github/dewormr/Data/Databases (March 2022)/animal_rumours_march_22_v4.xlsx"
-df_filepath_cr <- "~/Github/dewormr/Data/Databases (March 2022)/msr_cr_march_22_v4.xlsx"
-df_filepath_abate <- "~/Github/dewormr/Data/Databases (March 2022)/abate_march_22_v4.xlsx"
+df_filepath_surv <- "~/Github/dewormr/Data/Databases (April 2022)/msr_surv_april_22_v4.xlsx"
+df_filepath_hotline <- "~/Github/dewormr/Data/Databases (April 2022)/hotline_rumours_april_22_v2.xlsx"
+df_filepath_animals <- "~/Github/dewormr/Data/Databases (April 2022)/animal_rumours_april_22_v2.xlsx"
+df_filepath_cr <- "~/Github/dewormr/Data/Databases (April 2022)/msr_cr_april_22_v2.xlsx"
+df_filepath_abate <- "~/Github/dewormr/Data/Databases (April 2022)/abate_april_22_v1.xlsx"
 `%notin%` <- Negate(`%in%`)
 
 #============== MSR_SURV database
 #MSR Data
-df_msr_surv<- read_xlsx(df_filepath_surv, sheet="2021 MSR-Surv", skip=1)
+df_msr_surv<- read_xlsx(df_filepath_surv, sheet="msr_surv", skip=1)
 df_msr_surv<-df_msr_surv %>% 
-  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
+  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
   pivot_longer(c("Number of VVs - 1":"Received - 12"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
@@ -38,36 +40,33 @@ df_msr_surv<-df_msr_surv %>%
          sheet="MSR_Surv")
 
 #Non MSR
-df_non_msr_surv<- read_xlsx(df_filepath_surv, sheet="2021-Non MSR-Surv.Jan-oct.", skip=1)
+df_non_msr_surv<- read_xlsx(df_filepath_surv, sheet="non_msr_surv", skip=1)
 df_non_msr_surv<-df_non_msr_surv %>% 
-  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
+  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
   pivot_longer(c("Number of VVs - 1":"Received - 12"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
          source="MSR_Surv",
          sheet="Non_MSR_Surv")
 
-#Non MSR RPIF 
-df_RPIF <- openxlsx::read.xlsx(df_filepath_surv, sheet="Other Non MSR-Surv with RPIF.", startRow=2, fillMergedCells = TRUE, sep.names=" ")
-df_RPIF<-df_RPIF %>% 
+#Non MSR Surv - Other
+df_msr_other <- openxlsx::read.xlsx(df_filepath_surv, sheet="non_msr_surv_other", startRow=2, fillMergedCells = TRUE, sep.names=" ")
+df_msr_other<-df_msr_other %>% 
   pivot_longer(cols=where(is.numeric), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
          source="MSR_Surv",
-         sheet="RPIF") %>% 
-  filter(PAYAM!="Grand Total",
-         COUNTY!="Grand Total")
+         sheet="Non_MSR_Other")
 
 # MSR IDSR
-df_IDSR<- openxlsx::read.xlsx(df_filepath_surv, sheet="2021-IDSR Rumours.", startRow=2, fillMergedCells = TRUE, sep.names=" ")
+df_IDSR<- openxlsx::read.xlsx(df_filepath_surv, sheet="idsr", startRow=2, fillMergedCells = TRUE, sep.names=" ")
 df_IDSR<-df_IDSR %>%
-  select(-"S/N", -`NO.RUMOURS-Totals`:-`SUSPECTS - Totals`  ) %>%
+  select(-`NO.RUMOURS-Totals`:-`SUSPECTS - Totals`  ) %>%
   pivot_longer(cols=where(is.numeric), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=month.name[as.numeric(month)],
          source="MSR_Surv",
-         sheet="IDSR") %>%
-  filter(COUNTY!="TOTALS")
+         sheet="IDSR")
 
 # Hotline Report
 df_hotline<- openxlsx::read.xlsx(df_filepath_hotline, startRow=1, fillMergedCells = TRUE, sep.names=" ")
@@ -77,8 +76,7 @@ df_hotline<-df_hotline %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=month.name[as.numeric(month)],
          source="MSR_Surv",
-         sheet="hotline") %>%
-  filter(COUNTY!="Totals")
+         sheet="hotline")
 
 # Animal Rumours
 df_animal<- openxlsx::read.xlsx(df_filepath_animals, startRow=1, fillMergedCells = TRUE, sep.names=" ")
@@ -88,15 +86,14 @@ df_animal<-df_animal %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=month.name[as.numeric(month)],
          source="MSR_Surv",
-         sheet="animals") %>%
-  filter(COUNTY!="Totals")
+         sheet="animals")
 
 #==============Cash Reward database
 
 #MSR Data
-df_msr_cr<- read_xlsx(df_filepath_cr, sheet="2022-MSR-CR", skip=0)
+df_msr_cr<- read_xlsx(df_filepath_cr, sheet="msr_cr", skip=0)
 df_msr_cr <- df_msr_cr %>% 
-  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`NAME OF CHIEF`, -`Total Number of Residents Reached with Cash Reward Messages - 2022`: -...183) %>% 
+  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`, -`Total Number of Residents Reached with Cash Reward Messages - 2022`: -`SSGWEP Secretariat - 2022`, -`...184`) %>% 
   pivot_longer(c(`Total Number of Residents Reached with Cash Reward Messages - 1` :`SSGWEP Secretariat - 12`), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
@@ -105,9 +102,9 @@ df_msr_cr <- df_msr_cr %>%
 
 
 #Non MSR
-df_non_msr_cr<- read_xlsx(df_filepath_cr, sheet="Non -MSR-CR ,Database.Jan-Oct.", skip=1)
+df_non_msr_cr<- read_xlsx(df_filepath_cr, sheet="non_msr_cr", skip=1)
 df_non_msr_cr <- df_non_msr_cr %>% 
-  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`NAME OF CHIEF`, -`Total Number of Residents Reached with Cash Reward Messages - 2022`: -`SSGWEP Secretariat - 2022`) %>%
+  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`, -`Total Number of Residents Reached with Cash Reward Messages - 2022`: -`SSGWEP Secretariat - 2022`) %>%
   pivot_longer(c(`Total Number of Residents Reached with Cash Reward Messages - 1` :`SSGWEP Secretariat - 12`), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
@@ -118,13 +115,15 @@ df_non_msr_cr <- df_non_msr_cr %>%
 
 #============== Abate database
 
-df_abate<- read_xlsx(df_filepath_abate, sheet="2022 Abate Report", skip=1)
+df_abate<- read_xlsx(df_filepath_abate, sheet="abate", skip=1)
 #Abate Data
 df_abate <- df_abate %>%
   filter(STATE!="NA") %>%
-  select(STATE:`Type of Water Source`, `Endemic Villages Using Water Source/ If no EV's then 1+ Villages Using`,
+  select(STATE:`Type of Water Source`, Latitude:`Endemic Villages Using Water Source/ If no EV's then 1+ Villages Using`,
          contains("Targeted"), contains("Eligible"), contains("Treated"), contains("Amount"), -`Volume of Water Source (m3)`, -`Amount of Abate Added (mL)`) %>% 
-  mutate(across(c(contains("Y = 1"), contains("Amount")), as.character)) %>% 
+  mutate(across(c(contains("Y = 1"), contains("Amount")), as.character)) %>%
+  rename("LATITUDE"=Latitude,
+         "LONGITUDE"=Longitude) %>% 
   pivot_longer(c(contains("Y = 1"), contains("If not treated, why?"), contains("Amount")), names_to="indicator", values_to="value") %>%
   mutate(indicator=gsub("\\(P.*", "", indicator)) %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
@@ -142,7 +141,7 @@ df_abate <- df_abate %>%
   select(-row) %>% 
   group_by(STATE, COUNTY, PAYAM, BOMA, `SUPERVISORY AREA`, `REPORTING UNIT`, `REPORTING UNIT CODE`,
            `NAME OF WATER SOURCE`, `Combined/ Merged Water Source Name`, `Water Source ID`, 
-           `Type of Water Source`, `Endemic Villages Using Water Source/ If no EV's then 1+ Villages Using`,
+           `Type of Water Source`, LATITUDE, LONGITUDE, `Endemic Villages Using Water Source/ If no EV's then 1+ Villages Using`,
            month, reason_no_abate, source, sheet) %>% 
   #Causes loss of eligible sites that are duplicated. Ensure water source names are numbered to resolve issue
   summarise(across(where(is.numeric), sum, na.rm = TRUE)) %>% 
@@ -172,10 +171,10 @@ df_abate <- df_abate %>%
 
 #============== Combine databases into one df
 
-df_rough<-bind_rows(df_msr_surv, df_non_msr_surv, df_RPIF, df_IDSR, df_hotline,
+df_rough<-bind_rows(df_msr_surv, df_non_msr_surv, df_msr_other, df_IDSR, df_hotline,
                     df_animal, df_msr_cr, df_non_msr_cr, df_abate)
 
-write_csv(df_rough, file.path(data_out, "gwsd_march_22_rough.txt"))
+write_csv(df_rough, file.path(data_out, "gwsd_april_22_rough.txt"))
 
 #NOTE MARCH 9 2922- combined_merged_Water_source_name removed because empty variable. Try again with February in case combined sources added
 df<-df_rough %>% 
@@ -190,6 +189,7 @@ df<-df_rough %>%
   mutate(
     cc = case_when(
       cc == "1" ~ "1",
+      str_detect(reporting_unit, "CC") ~ "1",
       str_detect(reporting_unit, "Cc") ~ "1",
       TRUE ~ "0"),
     state=case_when(
@@ -298,12 +298,13 @@ df<-df_rough %>%
       indicator=="cso/po/cgwfp/  sfc/spo/ta" ~ "visit_cso_po_spo_ta",
       indicator=="cso/ po/ cgwfp/ sfc/ spo/ ta" ~ "visit_cso_po_spo_ta",
       indicator=="if not treated, why?" ~ "abate_reason_untreated",
+      indicator=="animals screened" ~ "animals_screened",
       TRUE ~ indicator)) %>% 
   filter(month %in% c(current_months))
 
 
-rm(df_msr_cr, df_msr_surv, df_abate, df_animal, df_hotline, df_IDSR, df_non_msr_cr,
-   df_non_msr_surv, df_RPIF, df_rough)
+rm(df_msr_cr, df_msr_surv, df_abate, df_animal, df_hotline, df_msr_other, df_non_msr_cr,
+   df_non_msr_surv, df_rough)
 
 
 #============== Combine with 2021 data
@@ -317,7 +318,6 @@ df_21_22 <- df %>%
          "value"=as.numeric(value),
          "cc"=as.integer(cc)) %>%
   bind_rows(df_21) %>% 
-  #filter(month!="Cumulative") %>% 
   mutate(
     "year"= case_when(
       year=="2022" ~ "2022",

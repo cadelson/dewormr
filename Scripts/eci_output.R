@@ -2,15 +2,15 @@
 # AUTHOR: Cody Adelson | Data Manager
 # LICENSE: MIT
 # DATE: Dec 29, 2021
-# NOTES: Missing reporting units: Agricultural/Wungai Cc, Apukdit, Rumkier
+# NOTES: May 22 - Add Wunthou reporting unit for Awerial, ask Deng if includes CC
 
 
 `%notin%` <- Negate(`%in%`)
 data_out <- "~/Github/dewormr/Dataout"
 current_ec<-c("Block 1", "Wunethony", "Nyakhor Kamel", "Nyakhor Manyak", "Wechotda", "Kengel CC",
-               "Baragep", "Malueth CC", "Keny CC", "Bardhiak CC", "Wunbul CC", "Mayom CC", "Tomrok",
-               "Panakech", "Wungai CC", "Ruop CC", "Manyiel CC", "Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier",
-              "Rumkiir")
+              "Baragep", "Malueth CC", "Keny CC", "Bardhiak CC", "Wunbul CC", "Mayom CC", "Tomrok",
+              "Panakech", "Wungai CC", "Ruop CC", "Manyiel CC", "Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier",
+              "Rumkiir", "Gel-Angon CC Zone 2", "Malueth Bai V/CC")
 past_ec<-c("Ameer", "Ngadiang CC", "Parieng CC", "Panhomchet CC Zone", "Achol Manak")
 
 
@@ -42,15 +42,6 @@ df_eci_output <- df_21_22 %>%
       reporting_unit %in% c("Ageer", "Ajakdit") & str_detect(month, "November") ~1,
       reporting_unit %in% c("Ageer", "Ajakdit", "Rumdit") & str_detect(month, "October") ~1,
       TRUE~0),
-    #3/30/22 - Removed, now using report_expected indicator to determine RNE
-    # "RNE"=case_when(
-    #   county %in% c("Uror", "Rumbek North") & month %notin% c("August", "September","October", "November", "December") ~ 1,
-    #   county=="Awerial" & month %notin% c("November", "December") ~1,
-    #   reporting_unit %in% c("Ameer", "Ngadiang Cc", "Parieng Cc", "Panhomchet Cc Zone") & month %in% c("October", "November", "December") ~1,
-    #   reporting_unit %in% c("Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier") & month %notin% c("October", "November", "December") ~1,
-    #   county=="Tonj South" & month %in% c("October", "November", "December") ~1,
-    #   str_detect(county, "Tonj East") & str_detect(month, "October") ~1,
-    #   TRUE~0),
     "reporting_unit_vacant_?"=case_when(
       hh_total=="0" ~ 0,
       hh_total>0 ~ 1),

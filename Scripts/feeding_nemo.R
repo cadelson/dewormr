@@ -1,27 +1,28 @@
-# PURPOSE: Analyze combined dataset for NEMO
+# PURPOSE: Analyze dataset for monthly NEMO submission
 # AUTHOR: Cody Adelson | Data Manager
 # LICENSE: MIT
 # DATE: Dec 23, 2021
-# MARCH 9 2022 - STANDARDIZE AS ONLY VAS =1 FOR ALL
-# MAY 2022 - FOR NEXT NEMO, MAKE SURE RISK LEVELS CAPTURE ALL COUNTIES
+# Notes: MAY 2022 - FOR NEXT NEMO, MAKE SURE RISK LEVELS CAPTURE ALL COUNTIES
+# ALSO FOR TOTAL NUMBER OF VAS, USE DISTINCT RATHER THAN ADDING DUE TO DUPLICATES (SEE SCRATCH AS TEMPLATE)
 
-current_month<-("March")
+current_month<-("April")
 current_year<-("2022")
 
 
 level_1 <- c("Uror", "Awerial", "Tonj East", "Rumbek North")
-level_2<- c("Akobo", "Nyirol", "Tonj South", "Tonj North", "Rumbek Centre", "Terekeka")
+level_2<- c("Nyirol", "Tonj South", "Tonj North", "Rumbek Centre", "Terekeka", "Yirol East", "Yirol West", "Panyijiar",
+            "Mayendit", "Cueibet")
 level_3<- c("Wau", "Jur River", "Torit", "Lopa/Lafon", "Kapoeta East", "Kapoeta South",
-            "Kapoeta North", "Riaga", "Ikotos", "Wulu", "Rumbek East")
+            "Kapoeta North", "Riaga", "Ikotos", "Wulu", "Rumbek East", "Akobo")
 villages_1plus <- c("Tomrok", "Block 1", "Apukdit", "Kengel CC")
 
 #Number of human GWD rumours reported for VAS/NVAs 
 df_21_22 %>% 
   filter(month==current_month,
          year==current_year,
-         vas=="1",
+         vas==1,
          indicator %in% c("rumours_total", "rumours_invest_24"),
-         sheet %in% c("MSR_Surv", "Non_MSR_Surv", "RPIF")) %>% 
+         sheet %in% c("MSR_Surv", "Non_MSR_Surv", "Non_MSR_Other")) %>% 
   group_by(month, indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE))
 #Number of ANIMAL GWD rumours reported for VAS/NVAs 
@@ -207,7 +208,7 @@ df_21_22 %>%
          year==current_year,
          vas=="1",
          indicator %in% c("report_expected", "report_received"),
-         county %in% c(level_1)) %>% 
+         county %in% c(level_2)) %>% 
   group_by(indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE))
 
