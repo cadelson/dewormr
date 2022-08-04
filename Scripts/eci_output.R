@@ -21,7 +21,7 @@ df_eci_output <- df_21_22 %>%
          supervisory_area %notin% c("Gaak", "Ugel"),
          county %in% c("Uror", "Rumbek North", "Awerial", "Tonj East", "Tonj South"),
          #March 31, 2022 - Filtering out Rumdit from Makuac area, not in endemic cluster
-         payam!="Makuac",
+         payam %notin% c("Makuac", "Wuror", "Pathai"),
          indicator %in% c("cases_new", "staff_vv", "hp_working", "hh_total", "filter_hh_cloth",
                           "pop_total", "filter_dist_pipe", "abate_targeted", "abate_eligible",
                           "abate_treated", "activity_cra", "cr_days", "cr_reached", "ed_video",

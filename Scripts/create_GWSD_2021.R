@@ -17,7 +17,7 @@ df_filepath_abate_21 <- "~/Github/dewormr/Data/2021_raw_data/Databases (Final 20
 #MSR Data
 df_msr_surv<- read_xlsx(df_filepath_surv_21, sheet="2021 MSR-Surv", skip=1)
 df_msr_surv<-df_msr_surv %>% 
-  select(-...105, -`NUMBER OF VILLAGES PER REPORTING UNIT`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
+  select(-...105, -`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
   pivot_longer(c("Number of VVs - 1":"Received - 12"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
@@ -28,10 +28,12 @@ df_msr_surv<-df_msr_surv %>%
 #Non MSR
 df_non_msr_surv<- read_xlsx(df_filepath_surv_21, sheet="2021-Non MSR-Surv.Jan-oct.", skip=1)
 df_non_msr_surv<-df_non_msr_surv %>% 
-  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
+  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
   pivot_longer(c("Number of VVs - 1":"Received - 12"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
+         "LATITUDE" = as.character(LATITUDE),
+         "LONGITUDE" = as.character(LONGITUDE),
          source="MSR_Surv",
          sheet="Non_MSR_Surv")
 
@@ -104,7 +106,7 @@ df_non_msr_cr <- df_non_msr_cr %>%
 df_abate<- read_xlsx(df_filepath_abate_21, sheet="2021 Abate Report", skip=1)
 df_abate <- df_abate %>%
   filter(STATE!="NA") %>%
-  select(STATE:`Type of Water Source`, `Endemic Villages Using Water Source/ If no EV's then 1+ Villages Using`,
+  select(STATE:`Type of Water Source`, Latitude:`Endemic Villages Using Water Source/ If no EV's then 1+ Villages Using`,
          contains("Targeted"), contains("Eligible"), contains("Treated"), contains("Amount"), -`Volume of Water Source (m3)`, -`Amount of Abate Added (mL)`) %>% 
   mutate(across(c(contains("Y = 1"), contains("Amount")), as.character)) %>% 
   pivot_longer(c(contains("Y = 1"), contains("If not treated, why?"), contains("Amount")), names_to="indicator", values_to="value") %>%
@@ -122,7 +124,7 @@ df_abate <- df_abate %>%
          indicator=fct_relabel(indicator, trimws)) %>% 
   pivot_wider(names_from=indicator, values_from = value) %>% 
   select(-row) %>% 
-  group_by(STATE, COUNTY, PAYAM, BOMA, `SUPERVISORY AREA`, `REPORTING UNIT`, `REPORTING UNIT CODE`,
+  group_by(STATE, COUNTY, PAYAM, BOMA, `SUPERVISORY AREA`, `REPORTING UNIT`, `REPORTING UNIT CODE`, Latitude, Longitude,
            `NAME OF WATER SOURCE`, `Combined/ Merged Water Source Name`, `Water Source ID`, 
            `Type of Water Source`, `Endemic Villages Using Water Source/ If no EV's then 1+ Villages Using`,
            month, reason_no_abate, source, sheet) %>% 
@@ -281,6 +283,6 @@ df_21<-df_21_rough %>%
 
 
 rm(df_msr_cr, df_msr_surv, df_abate, df_animal, df_hotline, df_IDSR, df_non_msr_cr,
-   df_non_msr_surv, df_RPIF, df_rough)
+   df_non_msr_surv, df_RPIF, df_21_rough)
 
 write_csv(df_21, file.path(data_out, "GWSD_2021_Final.txt"))

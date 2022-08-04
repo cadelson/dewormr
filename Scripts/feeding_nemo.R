@@ -2,18 +2,11 @@
 # AUTHOR: Cody Adelson | Data Manager
 # LICENSE: MIT
 # DATE: Dec 23, 2021
-# Notes: MAY 2022 - FOR NEXT NEMO, MAKE SURE RISK LEVELS CAPTURE ALL COUNTIES
+# Notes: May 2022 - update to change order in order of prompts
 # ALSO FOR TOTAL NUMBER OF VAS, USE DISTINCT RATHER THAN ADDING DUE TO DUPLICATES (SEE SCRATCH AS TEMPLATE)
 
-current_month<-("April")
+current_month<-("June")
 current_year<-("2022")
-
-
-level_1 <- c("Uror", "Awerial", "Tonj East", "Rumbek North")
-level_2<- c("Nyirol", "Tonj South", "Tonj North", "Rumbek Centre", "Terekeka", "Yirol East", "Yirol West", "Panyijiar",
-            "Mayendit", "Cueibet")
-level_3<- c("Wau", "Jur River", "Torit", "Lopa/Lafon", "Kapoeta East", "Kapoeta South",
-            "Kapoeta North", "Riaga", "Ikotos", "Wulu", "Rumbek East", "Akobo")
 villages_1plus <- c("Tomrok", "Block 1", "Apukdit", "Kengel CC")
 
 #Number of human GWD rumours reported for VAS/NVAs 
@@ -33,32 +26,16 @@ df_21_22 %>%
          sheet %in% c("animals")) %>% 
   group_by(month, indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE))
-#Number of VAS and Received LEVEL ONE
+#Number of VAS and Received LEVEL ONE, TWO, THREE
 df_21_22 %>% 
   filter(month==current_month,
          year==current_year,
          vas=="1",
-         indicator %in% c("report_expected", "report_received"),
-         county %in% c(level_1)) %>% 
-  group_by(indicator, cc) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE))
-#Number of VAS and Received LEVEL TWO
-df_21_22 %>% 
-  filter(month==current_month,
-         year==current_year,
-         vas=="1",
-         indicator %in% c("report_expected", "report_received"),
-         county %in% c(level_2)) %>% 
-  group_by(indicator, cc) %>% 
-  summarise(across(c(value), sum, na.rm = TRUE))
-#Number of VAS and Received LEVEL THREE
-df_21_22 %>% 
-  filter(month==current_month,
-         year==current_year,
-         vas=="1",
-         indicator %in% c("report_expected", "report_received"),
-         county %in% c(level_3)) %>% 
-  group_by(indicator, cc) %>% 
+         indicator %in% c("report_expected", "report_received")) %>% 
+  group_by(indicator, cc, risk_level) %>% 
+  # NEED TO FILTER EXPECTED ==1 before tally, etc, reshape?
+  # distinct(state, county, payam, boma, supervisory_area, reporting_unit) %>% 
+  # tally()
   summarise(across(c(value), sum, na.rm = TRUE))
 #Number of 1+ Villages/CCs
 df_21_22 %>% 
@@ -69,21 +46,22 @@ df_21_22 %>%
   filter(value>0)
 #Number of 1+ Villages/CCs with health education each month
 df_21_22 %>% 
-  filter(indicator %in% c("cases_new", "activity_cra"),
+  filter(indicator %in% c("activity_cra"),
          year==current_year,
          month==current_month,
          reporting_unit %in% c(villages_1plus)) %>% 
   group_by(reporting_unit, month, indicator, cc) %>% 
   summarise(across(c(value), sum, na.rm = TRUE)) %>% 
   pivot_wider(names_from = indicator, values_from=value) %>% 
-  filter(activity_cra>0)
+  filter(activity_cra>0) %>% 
+  View()
 #Number of VAS/NVAs receiving at least one health education session each month (level 1 and 2)
 df_21_22 %>% 
   filter(month==current_month,
          year==current_year,
          vas=="1",
          indicator=="activity_cra",
-         county %in% c(level_1, level_2),
+         risk_level %in% c("Risk Level 1", "Risk Level 2"),
          value>0) %>%
   group_by(cc) %>% 
   distinct(reporting_unit, boma, payam) %>% 
@@ -141,13 +119,6 @@ df_21_22 %>%
   group_by(cc) %>% 
   distinct(reporting_unit, boma, payam) %>% 
   count()
-#Number of 1+ villages/CCs protected with Abate during transmission periods
-# df %>% 
-#   filter(reporting_unit %in% c(villages_1plus),
-#          indicator %in% c("abate_treated")) %>% 
-#   group_by(cc) %>% 
-#   distinct(reporting_unit, boma, payam) %>% 
-#   count()
 #Number of VAS with trained and supervised village volunteers
 df_21_22 %>% 
   filter(month==current_month,
@@ -175,7 +146,7 @@ df_21_22 %>%
   filter(month==current_month,
          year==current_year,
          indicator=="activity_case_search",
-         county %in% c(level_1, level_2),
+         risk_level %in% c("Risk Level 1", "Risk Level 2"),
          value>0,
          vas==1) %>% 
   group_by(cc) %>% 
@@ -207,8 +178,8 @@ df_21_22 %>%
   filter(month==current_month,
          year==current_year,
          vas=="1",
-         indicator %in% c("report_expected", "report_received"),
-         county %in% c(level_2)) %>% 
-  group_by(indicator, cc) %>% 
+         cc=="Cattle Camp",
+         indicator %in% c("report_expected", "report_received")) %>% 
+  group_by(indicator, cc, risk_level) %>% 
   summarise(across(c(value), sum, na.rm = TRUE))
 

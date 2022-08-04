@@ -7,14 +7,15 @@
 #Uror filter coverage for provisional analysis
 df_21_22 %>% 
   filter(indicator %in% c("filter_hh_cloth", "hh_total", "report_expected", "report_received"),
-         month %in% c("February", "March", "April"),
+         month %in% c("January", "February", "March", "April", "May", "June"),
          year=="2022",
          county=="Uror",
          vas=="1",
          sheet=="MSR_Surv") %>% 
   pivot_wider(names_from=indicator) %>% 
   filter(report_expected=="1",
-         report_received=="1") %>% 
+         report_received=="1",
+         hh_total!="0") %>% 
   mutate(filter_coverage=filter_hh_cloth/hh_total,
          coverage_tally=case_when(
            filter_coverage>.95 ~ 1,
@@ -23,6 +24,8 @@ df_21_22 %>%
   group_by(year, month, county, vas) %>% 
   summarise(across(where(is.numeric), sum, na.rm=TRUE)) %>% 
   mutate(coverage=coverage_tally/total) %>% 
+  arrange(match(month, c("January", "February", "March", "April", "May", "June"))) %>% 
+  select(year, month, coverage_tally, total, coverage) %>% 
   View()
 
 
