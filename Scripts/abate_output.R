@@ -5,7 +5,7 @@
 # NOTES:
 data_out <- "~/Github/dewormr/Dataout"
 
-df_abate_output<-df_21_22 %>% 
+df_abate_output<-df_21_23 %>% 
   filter(sheet=="Abate") %>% 
   mutate("Negative CDC Result"=case_when(str_detect(reason_no_abate, "Negative") ~ 1, TRUE~0),
          "Other"=case_when(str_detect(reason_no_abate, "Other") ~ 1, TRUE~0),
@@ -20,7 +20,7 @@ df_abate_output<-df_21_22 %>%
   mutate(
     "Total Water Sources"=case_when(
       year=="2021" ~ abate_targeted,
-      year=="2022" ~ abate_targeted+`Negative CDC Result`+`Other`),
+      year %in% c("2022", "2023") ~ abate_targeted+`Negative CDC Result`+`Other`),
     "Targeted Water Sources"=abate_targeted,
     "Eligible Water Sources"=abate_eligible,
     "Treated Water Sources"=abate_treated,
