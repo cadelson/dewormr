@@ -2,26 +2,25 @@
 # AUTHOR: Cody Adelson | Data Manager
 # LICENSE: MIT
 # DATE: Dec 29, 2021
-# NOTES: May 22 - Add Wunthou reporting unit for Awerial, ask Deng if includes CC
-
+# NOTES: 
 
 `%notin%` <- Negate(`%in%`)
 data_out <- "~/Github/dewormr/Dataout"
-current_ec<-c("Block 1", "Wunethony", "Nyakhor Kamel", "Nyakhor Manyak", "Wechotda", "Kengel CC",
-              "Baragep", "Malueth CC", "Keny CC", "Bardhiak CC", "Wunbul CC", "Mayom CC", "Tomrok",
-              "Panakech", "Wungai CC", "Ruop CC", "Manyiel CC", "Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkier",
-              "Rumkiir", "Gel-Angon CC Zone 2", "Malueth Bai V/CC")
-past_ec<-c("Ameer", "Ngadiang CC", "Parieng CC", "Panhomchet CC Zone", "Achol Manak")
+ec_current<-c("Tomrok","Panakech", "Wungai CC", "Ruop CC", "Manyiel CC",  "Gel-Angon CC Zone 2", "Abongbeo", "Ugwil", "Kuji", "Wunlaac", "Guotyar", 
+              "Jarweng","Jietyom", "Kachahoro", "Wunkum")
+ec_2021<-c("Apukdit", "Ajakdit", "Ageer", "Rumdit", "Rumkiir", "Block 1", "Wunethony", "Wechotda", "Nyakhor Kamel", "Rumkier",
+           "Nyakhor Manyak", "Kengel CC", "Mayom CC", "Baragep", "Keny CC", "Malueth CC", "Bardhiak CC", "Wunbul CC", "Malueth Bai V/CC", "Partet")
+ec_2020<-c("Ameer", "Ngadiang CC", "Parieng CC", "Panhomchet CC Zone", "Achol Manak")
 
 
-df_eci_output <- df_21_22 %>% 
+df_eci_output <- df_21_23 %>% 
   select(-vas, -name_of_water_source, -combined_merged_water_source_name, -water_source_id,
          -type_of_water_source, -ev_using_water_source, -reason_no_abate, -risk_level) %>% 
-  filter(reporting_unit %in% c(current_ec, past_ec),
-         supervisory_area %notin% c("Gaak", "Ugel"),
-         county %in% c("Uror", "Rumbek North", "Awerial", "Tonj East", "Tonj South"),
+  filter(reporting_unit %in% c(ec_current, ec_2021, ec_2020),
+         supervisory_area %notin% c("Gaak", "Ugel", "Jalla", "Juol-Gok", "Juot Gok"),
+         county %in% c("Uror", "Rumbek North", "Awerial", "Tonj East", "Tonj South", "Lafon"),
          #March 31, 2022 - Filtering out Rumdit from Makuac area, not in endemic cluster
-         payam %notin% c("Makuac", "Wuror", "Pathai"),
+         payam %notin% c("Makuac", "Wuror", "Pathai", "Pan-Nhial", "Wunlit"),
          indicator %in% c("cases_new", "staff_vv", "hp_working", "hh_total", "filter_hh_cloth",
                           "pop_total", "filter_dist_pipe", "abate_targeted", "abate_eligible",
                           "abate_treated", "activity_cra", "cr_days", "cr_reached", "ed_video",
@@ -35,13 +34,11 @@ df_eci_output <- df_21_22 %>%
   summarise(across(where(is.numeric), sum, na.rm = TRUE)) %>%
   ungroup() %>% 
   mutate(
-    "Current or Past 2021 Endemic Cluster"=case_when(
-      reporting_unit %in% current_ec ~ "Current 2021 Endemic Cluster",
-      TRUE ~ "Past 2021 Endemic Cluster"),
-    "DNR"=case_when(
-      reporting_unit %in% c("Ageer", "Ajakdit") & str_detect(month, "November") ~1,
-      reporting_unit %in% c("Ageer", "Ajakdit", "Rumdit") & str_detect(month, "October") ~1,
-      TRUE~0),
+    "Endemic Cluster Year"=case_when(
+      reporting_unit %in% ec_current ~ "Current Endemic Cluster",
+      reporting_unit %in% ec_2021 ~ "2021 Endemic Cluster",
+      reporting_unit %in% ec_2020 ~ "2020 Endemic Cluster"),
+    "DNR"= 0,
     "reporting_unit_vacant_?"=case_when(
       hh_total=="0" ~ 0,
       hh_total>0 ~ 1),
@@ -53,6 +50,10 @@ df_eci_output <- df_21_22 %>%
       TRUE ~ 0),
     "Total_Cases_2021"=case_when(
       reporting_unit %in% c("Block 1", "Kengel CC", "Apukdit", "Tomrok") ~ 1,
+      TRUE ~ 0),
+    "Total_Cases_2022"=case_when(
+      reporting_unit %in% c("Wunlaac", "Abongbeo") ~ 1,
+      reporting_unit %in% c("Jarweng") ~ 3,
       TRUE ~ 0),
     "Priority_Villages"=1,
     "Endemic_in_2019?"=0,
@@ -144,14 +145,14 @@ df_eci_output <- df_21_22 %>%
 df_eci_cumulative<-df_eci_output %>% 
   select(-`Total Cases 2020`, -`Total Cases Contained 2020`, -`Total Cases 2021`, -`Priority Villages`,
          -`GPS?`) %>% 
-  group_by(State, County, Payam, `Reporting Unit`, `Current or Past 2021 Endemic Cluster`, year, cc) %>% 
+  group_by(State, County, Payam, `Reporting Unit`, `Endemic Cluster Year`, year, cc) %>% 
   summarise(across(where(is.numeric), sum, na.rm = TRUE)) %>% 
   mutate("Month"="YTD")
 
 df_eci_cumulative2<-df_eci_output %>% 
-  select(State, County, Payam, `Reporting Unit`, `Current or Past 2021 Endemic Cluster`,
+  select(State, County, Payam, `Reporting Unit`, `Endemic Cluster Year`,
          `Total Cases 2020`, `Total Cases Contained 2020`, `Total Cases 2021`, `Priority Villages`, `GPS?`, year, cc) %>% 
-  group_by(State, County, Payam, `Reporting Unit`, `Current or Past 2021 Endemic Cluster`, year, cc) %>% 
+  group_by(State, County, Payam, `Reporting Unit`, `Endemic Cluster Year`, year, cc) %>% 
   summarise(across(where(is.numeric), mean, na.rm = TRUE)) %>% 
   mutate("Month"="YTD") %>% 
   ungroup() %>% 

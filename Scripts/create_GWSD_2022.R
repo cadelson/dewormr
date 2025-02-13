@@ -8,11 +8,13 @@
 # Remove color from raw data, add notes col
 # Clean raw abate data and condense code
 
-get_gwsd("June")
+get_gwsd("December")
 get_gwsd <- function(current_month) {
   
 #============== Set file paths and import data
+
 data_in <-glue("~/Github/dewormr/Data/{match(current_month, month.name)}. Databases ({current_month} 2022)")
+#data_in <-"~/Github/dewormr/Data/11. Databases (November 2022)"
 data_out <- "~/Github/dewormr/Dataout"
 ind_conv <- read_xlsx("~/Github/dewormr/Data/indicator_conversion.xlsx")
 risk_levels <- read_xlsx("~/Github/dewormr/Data/risk_levels.xlsx", col_types = "text")
@@ -32,7 +34,7 @@ df_imports %>%
 #============== Munge each df to get ready for merge
 #MSR Surv Data
 df_msr_surv <- df_msr_surv %>% 
-  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
+  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`) %>% 
   pivot_longer(c("Number of VVs - 1":"Received - 12"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
@@ -41,7 +43,7 @@ df_msr_surv <- df_msr_surv %>%
 
 #Non MSR
 df_non_msr_surv <- df_non_msr_surv %>% 
-  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`, -`Number of VVs - 2021`:-`Received - 2021`) %>% 
+  select(-`NUMBER OF VILLAGES PER REPORTING UNIT`:-`IS THE VILLAGE/CC  OCCUPIED /NOT OCCUPIED\r\n(Yes=1, No=0)`, -`SENIOR PROGRAM OFFICER`:-`NAME OF CHIEF`) %>% 
   pivot_longer(c("Number of VVs - 1":"Received - 12"), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>% 
   mutate(month=month.name[as.numeric(month)],
@@ -58,7 +60,6 @@ df_non_msr_surv_other <- df_non_msr_surv_other %>%
 
 # MSR IDSR
 df_idsr <- df_idsr %>%
-  select(-`NO.RUMOURS-Totals`:-`SUSPECTS - Totals`) %>%
   pivot_longer(cols=where(is.numeric), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=month.name[as.numeric(month)],
@@ -77,7 +78,7 @@ df_hotline_rumours <- df_hotline_rumours %>%
 # Animal Rumours
 df_animal_rumours <- df_animal_rumours %>%
   select(-(starts_with("Animal Types"))) %>%
-  mutate(cc=as.character(cc)) %>% 
+  mutate(cc_animals=as.character(cc_animals)) %>% 
   pivot_longer(cols=where(is.numeric), names_to="indicator", values_to="value") %>%
   separate(indicator, c("indicator", "month"), sep="-") %>%
   mutate(month=month.name[as.numeric(month)],
@@ -166,6 +167,7 @@ df <- df_rough %>%
          ev_using_water_source=endemic_villages_using_water_source_if_no_e_vs_then_1_villages_using) %>% 
   mutate(
     cc = case_when(
+      cc_animals == "1" ~ 1,
       str_detect(reporting_unit, "CC") ~ 1,
       str_detect(reporting_unit, "Cc") ~ 1,
       TRUE ~ 0),
@@ -182,13 +184,14 @@ df <- df_rough %>%
     reporting_unit=str_replace(reporting_unit, "Cc", "CC"),
     indicator=tolower(indicator)) %>% 
   left_join(ind_conv) %>% 
-  select(-indicator) %>% 
+  select(-indicator, -cc_animals) %>% 
   rename("indicator" = indicator_new)
 
-#============== Combine with 2021 data, more cleaning and write to csv
+#============== Remove dfs, combine with 2021 data, more cleaning and write to csv
 
 df_21_path <- "~/Github/dewormr/Dataout/GWSD_2021_Final.txt"
-df_21<- read.csv(df_21_path)
+df_21<- read.csv(df_21_path) %>% 
+  mutate(year = "2021")
 
 df_21_22 <- df %>% 
   mutate("year"="2022",
@@ -199,14 +202,15 @@ df_21_22 <- df %>%
   left_join(risk_levels) %>% 
   mutate(
     risk_level = replace_na(risk_level, "Risk Level 3"),
-    "year"= case_when(
-      year=="2022" ~ "2022",
-      TRUE ~ "2021"),
+    county = case_when(
+      county == "Lopa/Lafon" ~ "Lafon",
+      TRUE ~ county),
     "cc"=case_when(
       str_detect(cc, "1") ~ "Cattle Camp",
       TRUE ~ "Village")) %>% 
   write_csv(file.path(data_out, "gwsd_21_22.txt"))
 
 rm(df_msr_cr, df_msr_surv, df_abate, df_idsr, df_animal_rumours, df_hotline_rumours, df_non_msr_surv_other, df_non_msr_cr,
-   df_non_msr_surv, df_rough, ind_conv, risk_levels, df_imports, df, df_21)
+   df_non_msr_surv, df_imports)
+return(df_21_22)
 }
